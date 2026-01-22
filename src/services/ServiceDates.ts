@@ -1,6 +1,6 @@
 import { safeParse} from "valibot"
 import axios from "axios"
-import { DraftDateSchema } from "../types";
+import { DateSchema, DraftDateSchema } from "../types";
 
 type serviceData = {
 
@@ -24,13 +24,13 @@ export async function addProduct(data : serviceData) {
         // LUEGO SI LOS RESULTADOS CON CORECTOS 
 if (result.success) {
     // SE CREA LA RUTA DE DESTINO
-    const url = `${import.meta.env.VITE_API_URL}/cita/cliente`
+    const url = `${import.meta.env.VITE_API_URL}/api/service`
     // LUEGO SE ENVIA LA DATA A LA SERVER CON EL METODO POST Y SE AÑADE LA URL LUEGO LA DATA YA VALIDADA
   
    return  await axios.post(url, 
         {
             service: result.output.service,
-            date: result.output.date,
+            date: result.output.list,
             barber: result.output.barber,
             price: +result.output.price,
             
@@ -49,25 +49,25 @@ if (result.success) {
     
 }
 
-// export async function getServices() {
-//     try {
-//             const url = `${import.meta.env.VITE_API_URL}/api/service`
-//             const {data} = await axios(url)
-//             const result = safeParse(ServicesSchema, data.data)
-//             if(result.success){
-//                return result.output
-//             }else{
-//                 throw new Error("Hubo un error...")
-//             }
+export async function getServices() {
+    try {
+            const url = `${import.meta.env.VITE_API_URL}/api/service`
+            const {data} = await axios(url)
+            const result = safeParse(DateSchema, data.data)
+            if(result.success){
+               return result.output
+            }else{
+                throw new Error("Hubo un error...")
+            }
 
             
-//             console.log(result);
+            console.log(result);
             
             
-//     } catch (error) {
-//         return[]
-//     }
-// }
+    } catch (error) {
+        return[]
+    }
+}
 
 
 // export async function getServiceById(id : Service["id"]) {

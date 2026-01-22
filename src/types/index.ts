@@ -23,9 +23,18 @@ export const DraftDateSchema = object({
     service: string(),
     price:  number(), 
     barber: string(),
-    date: string(),
+    list: string(),
 
     // menssage:string
+})
+export const DateSchema = object({
+            id: number(),
+            service: string(),
+            price: number(),
+            barber: string(),
+            list: string(),
+            createdAt: number()
+           
 })
 
  
