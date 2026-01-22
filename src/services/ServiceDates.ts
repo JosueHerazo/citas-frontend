@@ -1,6 +1,6 @@
 import { safeParse} from "valibot"
 import axios from "axios"
-import { DateSchema, DatesSchema, DraftDateSchema } from "../types";
+import { DraftDateSchema } from "../types";
 
 type serviceData = {
 
@@ -14,7 +14,6 @@ export async function addProduct(data : serviceData) {
             {
              barber: data.barber,
             service: data.service,
-            client: data.client,
             phone: +data.phone,
             price: +data.price,
             // createdAt: data.createdAt
@@ -32,9 +31,8 @@ if (result.success) {
         {
             barber: result.output.barber,
             service: result.output.service,
-            client: result.output.client,
-            phone: +result.output.phone,
             price: +result.output.price,
+            list: +result.output.list,
             
             
             
@@ -52,24 +50,24 @@ if (result.success) {
     
 }
 
-export async function getServices() {
-    try {
-            const url = `${import.meta.env.VITE_API_URL}/api/service`
-            const {data} = await axios(url)
-            const result = safeParse(DatesSchema, data.data)
-            if(result.success){
-               return result.output
-            }else{
-                throw new Error("Hubo un error...")
-            }
+// export async function getServices() {
+//     try {
+//             const url = `${import.meta.env.VITE_API_URL}/api/service`
+//             const {data} = await axios(url)
+//             const result = safeParse(DatesSchema, data.data)
+//             if(result.success){
+//                return result.output
+//             }else{
+//                 throw new Error("Hubo un error...")
+//             }
 
             
             
             
-    } catch (error) {
-        return[]
-    }
-}
+//     } catch (error) {
+//         return[]
+//     }
+// }
 
 
 // export async function getServiceById(id : Service["id"]) {
