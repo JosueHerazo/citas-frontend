@@ -1,6 +1,6 @@
 import { safeParse} from "valibot"
 import axios from "axios"
-import { DateSchema, DraftDateSchema } from "../types";
+import { DateSchema, DatesSchema, DraftDateSchema } from "../types";
 
 type serviceData = {
 
@@ -12,9 +12,10 @@ export async function addProduct(data : serviceData) {
         // VALIBOT LIMPIA LOS DATOS Y PARSEA EL TYPE
         const result = safeParse(DraftDateSchema,
             {
+             barber: data.barber,
             service: data.service,
-            barber: data.barber,
-            date: data.date,
+            client: data.client,
+            phone: +data.phone,
             price: +data.price,
             // createdAt: data.createdAt
             
@@ -27,12 +28,14 @@ if (result.success) {
     const url = `${import.meta.env.VITE_API_URL}/api/service`
     // LUEGO SE ENVIA LA DATA A LA SERVER CON EL METODO POST Y SE AÑADE LA URL LUEGO LA DATA YA VALIDADA
   
-   return  await axios.post(url, 
+     await axios.post(url, 
         {
-            service: result.output.service,
-            date: result.output.list,
             barber: result.output.barber,
+            service: result.output.service,
+            client: result.output.client,
+            phone: +result.output.phone,
             price: +result.output.price,
+            
             
             
         }
@@ -53,7 +56,7 @@ export async function getServices() {
     try {
             const url = `${import.meta.env.VITE_API_URL}/api/service`
             const {data} = await axios(url)
-            const result = safeParse(DateSchema, data.data)
+            const result = safeParse(DatesSchema, data.data)
             if(result.success){
                return result.output
             }else{
@@ -61,7 +64,6 @@ export async function getServices() {
             }
 
             
-            console.log(result);
             
             
     } catch (error) {
