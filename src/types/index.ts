@@ -1,4 +1,4 @@
-import {number, string, email, pipe, boolean, object} from "valibot"
+import {number, string, email, any, pipe, boolean, object} from "valibot"
 
 export const DraftRegisterSchema = object({
     name: string(),
@@ -32,7 +32,7 @@ export const DateSchema = object({
             service: string(),
             price: number(),
             barber: string(),
-            list: string(),
+            list: any(),
             createdAt: number()
            
 })
