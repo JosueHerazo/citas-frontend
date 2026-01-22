@@ -15,7 +15,7 @@ export async function addProduct(data : serviceData) {
              barber: data.barber,
             service: data.service,
             phone: +data.phone,
-            price: +data.price,
+            list: +data.list,
             // createdAt: data.createdAt
             
         })
