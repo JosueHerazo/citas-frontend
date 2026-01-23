@@ -25,7 +25,7 @@ export async function addProduct(data : serviceData) {
         // LUEGO SI LOS RESULTADOS CON CORECTOS 
 if (result.success) {
     // SE CREA LA RUTA DE DESTINO
-    const url = `${import.meta.env.VITE_API_URL}/api/service/`
+    const url = `${import.meta.env.VITE_API_URL}/api/service`
     // LUEGO SE ENVIA LA DATA A LA SERVER CON EL METODO POST Y SE AÑADE LA URL LUEGO LA DATA YA VALIDADA
   
      await axios.post(url, 
