@@ -5,7 +5,7 @@ import Layout from "./layouts/Layout"
 import Barberos from "./pages/Barberos"
 import Videos from "./pages/Videos"
 import Noticias from "./pages/Noticias"
-import DateClient, {action as citasAction} from "./pages/DateClient"
+import ListDate, {action as citasAction} from "./pages/ListDate"
 import Trabajos from "./pages/Trabajos"
 import Registro from "./pages/Registro"
 // { action as registroAction}
@@ -42,7 +42,7 @@ export const  router = createBrowserRouter([
             },
             {   
                    path: "cita/contacto",
-                   element:<DateClient/>,
+                   element:<ListDate/>,
                    action: citasAction
 
                },
