@@ -9,14 +9,15 @@ type serviceData = {
 }
 export async function addProduct(data : serviceData) {
     try {
+        const priceNumber = Number(data.price);
         // VALIBOT LIMPIA LOS DATOS Y PARSEA EL TYPE
         const result = safeParse(DraftDateSchema,
             {
-             barber: data.barber,
-            service: data.service,
-            price: +data.price,
-            date: data.date,
-            // createdAt: data.createdAt
+                barber: data.barber,
+                service: data.service,
+                price: isNaN(priceNumber) ? 0 : priceNumber, // Si no es número, ponemos 0
+                date: data.date,
+                // createdAt: data.createdAt
             
         })
         console.log(result);
