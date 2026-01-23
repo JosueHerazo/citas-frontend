@@ -14,7 +14,7 @@ export async function addProduct(data : serviceData) {
             {
              barber: data.barber,
             service: data.service,
-            price: +data.phone,
+            price: +data.price,
             date: data.date,
             // createdAt: data.createdAt
             
@@ -31,7 +31,7 @@ if (result.success) {
         {
             barber: result.output.barber,
             service: result.output.service,
-             price: +result.output.price,
+             price: result.output.price,
             date: result.output.date,
             
             

@@ -7,7 +7,6 @@ import Videos from "./pages/Videos"
 import Noticias from "./pages/Noticias"
 import ListDate, {action as citasAction} from "./pages/ListDate"
 import Trabajos from "./pages/Trabajos"
-import Registro from "./pages/Registro"
 // { action as registroAction}
 export const  router = createBrowserRouter([
 {
@@ -46,12 +45,7 @@ export const  router = createBrowserRouter([
                    action: citasAction
 
                },
-         {   
-                path: "/nuevo/registro",
-                element:<Registro/>,
-                // action: registroAction
-               
-            },
+    
          
      
           ]
