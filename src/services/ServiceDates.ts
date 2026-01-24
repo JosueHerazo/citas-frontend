@@ -16,10 +16,10 @@ export async function addProduct(data : serviceData) {
                 barber: data.barber,
                 service: data.service,
                 price: isNaN(priceNumber) ? 0 : priceNumber, // Si no es número, ponemos 0
-                date: data.date,
+                dateList: Number(data.dateList),
                 // createdAt: data.createdAt
-            
-        })
+                
+            })
         console.log(result);
         
         // LUEGO SI LOS RESULTADOS CON CORECTOS 
@@ -32,8 +32,8 @@ if (result.success) {
         {
             barber: result.output.barber,
             service: result.output.service,
-             price: result.output.price,
-            date: result.output.date,
+            price: +result.output.price,
+            dateList: +result.output.dateList,
             
             
             
