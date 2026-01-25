@@ -70,17 +70,26 @@ export default function ListDate() {
 
                 <div className="mb-4">
                     <label className="text-amber-50" htmlFor="dateList">Fecha de la Cita</label>
-                    <input id="dateList" name="dateList" type="date" className="mt-2 block w-full p-3 rounded-2xl font-bold text-white bg-zinc-800 border-2 border-amber-400" placeholder="Nombre completo"
+                    <input id="dateList" name="dateList" type="datetime-local" className="mt-2 block w-full p-3 rounded-2xl font-bold text-white bg-zinc-800 border-2 border-amber-400" placeholder="Nombre completo"
                     // defaultValue={clientName}
                     />
                 </div>
 
-                {/* <div className="mb-4">
-                    <label className="text-amber-50" htmlFor="phone">Teléfono:</label>
-                    <input id="phone" name="phone" type="text" className="mt-2 block w-full p-3 rounded-2xl font-bold text-white bg-zinc-800 border-2 border-amber-400" placeholder="Número de contacto" 
-                    defaultValue={clientPhone}/>
+                
+                <div className="mb-4">
+                    <label className="text-amber-50" htmlFor="client">Nombre del Cliente</label>
+                    <input id="client" name="client" type="text" className="mt-2 block w-full p-3 rounded-2xl font-bold text-white bg-zinc-800 border-2 border-amber-400" placeholder="Nombre completo"
+                    // defaultValue={clientName}
+                    />
+                </div>
 
-                </div> */}
+                <div className="mb-4">
+                    <label className="text-amber-50" htmlFor="phone">Teléfono:</label>
+                    <input id="phone" name="phone" type="number" className="mt-2 block w-full p-3 rounded-2xl font-bold text-white bg-zinc-800 border-2 border-amber-400" placeholder="Número de contacto" 
+                    // defaultValue={clientPhone}
+                    />
+
+                </div>
 
                 <input type="submit" className="mt-5 bg-amber-400 p-3 text-white font-black text-lg cursor-pointer rounded-2xl hover:bg-amber-500 transition-colors" value="Reservar citas"/>
             </Form>
