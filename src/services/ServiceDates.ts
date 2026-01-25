@@ -17,7 +17,7 @@ export async function addProduct(data : serviceData) {
                 barber: data.barber,
                 service: data.service,
                 price: isNaN(priceNumber) ? 0 : priceNumber, 
-                date: data.date,
+                dateList: data. dateList,
                 client: data.client,
                 phone: Number(data.phone),
                
@@ -36,7 +36,7 @@ if (result.success) {
             barber: result.output.barber,
             service: result.output.service,
             price: +result.output.price,
-            date: result.output.date,
+            dateList: result.output.dateList,
             client: result.output.client,   
             phone: result.output.phone,
             

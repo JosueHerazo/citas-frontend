@@ -1,6 +1,7 @@
 import { Link, Form, type ActionFunctionArgs, redirect, useActionData } from "react-router-dom"
 import ErrorMessaje from "../components/ErrorMessage"
 import { addProduct } from "../services/ServiceDates"
+// import datePicker from "react-datepicker";
 // import { useSearchParams } from "react-router-dom";
 // import { useEffect, useState } from "react";
 
@@ -69,8 +70,8 @@ export default function ListDate() {
                 </div>
 
                 <div className="mb-4">
-                    <label className="text-amber-50" htmlFor="date">Fecha de la Cita</label>
-                    <input id="date" name="date" type="datetime-local" className="mt-2 block w-full p-3 rounded-2xl font-bold text-white bg-zinc-800 border-2 border-amber-400" placeholder="Nombre completo"
+                    <label className="text-amber-50" htmlFor="dateList">Fecha de la Cita</label>
+                    <input id="dateList" name="dateList" type="datetime-local" className="mt-2 block w-full p-3 rounded-2xl font-bold text-white bg-zinc-800 border-2 border-amber-400" placeholder="Nombre completo"
                     // defaultValue={clientName}
                     />
                 </div>
