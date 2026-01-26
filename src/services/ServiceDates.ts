@@ -55,7 +55,7 @@ if (result.success) {
             
     console.log("✅ Guardado con éxito en la DB");
 } else {
-    
+    console.error("Errores de validación:", result.issues);
 }    } catch (error) {
 console.log("❌ Error en la petición:", error    
 );        
