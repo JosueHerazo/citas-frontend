@@ -23,7 +23,7 @@ export const DraftDateSchema = object({
     service: string(),
     price: number(),
     barber: string(),
-    dateList: string(),
+    dateList: any(),
     client: string(),
     phone: number(),  // Cambia date() por any() para evitar el error de parseo
      
@@ -35,7 +35,7 @@ export const DateSchema = object({
     service: string(),
     price: number(),
     barber: string(),       
-    dateList: string(),
+    dateList: any(),
     client: string(),
     phone: number(),   
            

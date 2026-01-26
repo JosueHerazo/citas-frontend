@@ -30,7 +30,7 @@ if (result.success) {
     // SE CREA LA RUTA DE DESTINO
     const url = `${import.meta.env.VITE_API_URL}/api/date`
     // LUEGO SE ENVIA LA DATA A LA SERVER CON EL METODO POST Y SE AÑADE LA URL LUEGO LA DATA YA VALIDADA
-  
+  console.log("ERRORES DE VALIBOT:", result.issues);
      await axios.post(url, 
         {
             barber: result.output.barber,
