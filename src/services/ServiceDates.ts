@@ -31,20 +31,20 @@ if (result.success) {
     // SE CREA LA RUTA DE DESTINO
     const url = `${import.meta.env.VITE_API_URL}/api/date`
     // VALIDACIÓN DE FECHA ANTES DE ENVIAR
-      const rawDate = result.output.dateList;
-      const dateObject = new Date(rawDate);
+    //   const rawDate = result.output.dateList;
+    //   const dateObject = new Date(rawDate);
 
       // Si la fecha es inválida, usamos la fecha actual para que no explote
-      const finalDate = isNaN(dateObject.getTime()) 
-        ? new Date().toISOString() 
-        : dateObject.toISOString();
+    //   const finalDate = isNaN(dateObject.getTime()) 
+    //     ? new Date().toISOString() 
+    //     : dateObject.toISOString();
     
      await axios.post(url, 
         {
             barber: result.output.barber,
             service: result.output.service,
             price: +result.output.price,
-            dateList: finalDate, // Formatear a "YYYY-MM-DD"
+            dateList: result.output.dateList, // Formatear a "YYYY-MM-DD"
             client: result.output.client,   
             phone: +result.output.phone,
             
