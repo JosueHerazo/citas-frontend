@@ -9,6 +9,7 @@ type serviceData = {
 }
 export async function addProduct(data : serviceData) {
     try {
+        console.log("Esquema actual:", DraftDateSchema); // Esto te dirá si ya cambió a string
         const priceNumber = Number(data.price);
         // const dateListNumber = Number(data.dateList);
         // VALIBOT LIMPIA LOS DATOS Y PARSEA EL TYPE
