@@ -1,4 +1,4 @@
-import {number, array, string, email,  pipe, boolean, object, type InferOutput, date} from "valibot"
+import {number, array, string, email,  pipe, transform, boolean, object, type InferOutput, date} from "valibot"
 
 export const DraftRegisterSchema = object({
     name: string(),
@@ -23,23 +23,25 @@ export const DraftDateSchema = object({
     service: string(),
     price: number(),
     barber: string(),
-    dateList: date(),
     client: string(),
     phone: number(),  // Cambia date() por any() para evitar el error de parseo
-     
-
-    // menssage:string
-})
+    dateList: pipe(
+    string(),                        // acepta "2025-12-24"
+    transform((input) => new Date(input + "T00:00:00"))),
+     })
 export const DateSchema = object({
      id: number(),
     service: string(),
     price: number(),
     barber: string(),       
-    dateList: date(),
     client: string(),
     phone: number(),   
            
-})
+    dateList: pipe(
+    string(),                        // acepta "2025-12-24"
+    transform((input) => new Date(input + "T00:00:00"))),
+     })
+
  export const DatesSchema = array(DateSchema)
 
  
