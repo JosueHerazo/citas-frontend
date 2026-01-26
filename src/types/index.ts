@@ -25,10 +25,8 @@ export const DraftDateSchema = object({
     barber: string(),
     client: string(),
     phone: number(),  // Cambia date() por any() para evitar el error de parseo
-    dateList: pipe(
-    string(),                        // acepta "2025-12-24"
-    transform((input) => new Date(input + "T00:00:00"))),
-     })
+    dateList: string(),
+         })
 export const DateSchema = object({
      id: number(),
     service: string(),
@@ -37,9 +35,7 @@ export const DateSchema = object({
     client: string(),
     phone: number(),   
            
-    dateList: pipe(
-    string(),                        // acepta "2025-12-24"
-    transform((input) => new Date(input + "T00:00:00"))),
+    dateList: string(),
      })
 
  export const DatesSchema = array(DateSchema)
