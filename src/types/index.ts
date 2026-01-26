@@ -1,4 +1,4 @@
-import {number, array, string, email,  pipe, transform, boolean, object, type InferOutput, date} from "valibot"
+import {number, array, string, email,  pipe, transform, boolean, object, type InferOutput} from "valibot"
 
 export const DraftRegisterSchema = object({
     name: string(),

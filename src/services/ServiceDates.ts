@@ -37,7 +37,7 @@ if (result.success) {
             barber: result.output.barber,
             service: result.output.service,
             price: +result.output.price,
-            dateList: result.output.dateList,
+            dateList: result.output.dateList.toISOString().split('T')[0], // Formatear a "YYYY-MM-DD"
             client: result.output.client,   
             phone: result.output.phone,
             
