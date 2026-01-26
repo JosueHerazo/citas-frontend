@@ -1,4 +1,4 @@
-import {number, array, string, email,  pipe, transform, boolean, object, type InferOutput} from "valibot"
+import {number, array, string, email,  pipe, boolean, object, type InferOutput, any, nullable} from "valibot"
 
 export const DraftRegisterSchema = object({
     name: string(),
@@ -28,14 +28,16 @@ export const DraftDateSchema = object({
     dateList: string(),
          })
 export const DateSchema = object({
-     id: number(),
+      id: number(),
     service: string(),
     price: number(),
-    barber: string(),       
-    client: string(),
-    phone: number(),   
-           
-    dateList: string(),
+    barber: string(),
+    client: string(),   
+    phone: number(),
+    createdAt: any(), // IMPORTANTE: Sequelize siempre lo envía
+    updatedAt: any(), // IMPORTANTE: Sequelize siempre lo envía
+    clientId: nullable(any()),     
+    dateList: string()
      })
 
  export const DatesSchema = array(DateSchema)
