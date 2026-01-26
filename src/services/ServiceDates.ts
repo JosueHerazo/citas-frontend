@@ -30,28 +30,35 @@ export async function addProduct(data : serviceData) {
 if (result.success) {
     // SE CREA LA RUTA DE DESTINO
     const url = `${import.meta.env.VITE_API_URL}/api/date`
-    // LUEGO SE ENVIA LA DATA A LA SERVER CON EL METODO POST Y SE AÑADE LA URL LUEGO LA DATA YA VALIDADA
-    const dateObject = new Date(result.output.dateList);
+    // VALIDACIÓN DE FECHA ANTES DE ENVIAR
+      const rawDate = result.output.dateList;
+      const dateObject = new Date(rawDate);
+
+      // Si la fecha es inválida, usamos la fecha actual para que no explote
+      const finalDate = isNaN(dateObject.getTime()) 
+        ? new Date().toISOString() 
+        : dateObject.toISOString();
+    
      await axios.post(url, 
         {
             barber: result.output.barber,
             service: result.output.service,
             price: +result.output.price,
-            dateList: dateObject.toISOString(), // Formatear a "YYYY-MM-DD"
+            dateList: finalDate, // Formatear a "YYYY-MM-DD"
             client: result.output.client,   
             phone: +result.output.phone,
             
             
-            
+            // new Date(result.output.dateList)
         }
     )
             
-    
+    console.log("✅ Guardado con éxito en la DB");
 } else {
     
 }    } catch (error) {
-        console.log(error);
-        
+console.log("❌ Error en la petición:", error    
+);        
     }
     
     
