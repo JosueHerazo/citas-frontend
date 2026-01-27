@@ -27,6 +27,10 @@ const BARBEROS_DATA = [
 ];
 
 export default function ListDate() {
+    const [clienteInfo] = useState({
+        nombre: localStorage.getItem("cliente_nombre") || "",
+        telefono: localStorage.getItem("cliente_telefono") || ""
+    });
     const userName = localStorage.getItem("cliente_nombre") || localStorage.getItem("userName");
     const userPhone = localStorage.getItem("cliente_telefono");
 
@@ -156,18 +160,30 @@ export default function ListDate() {
                     </div>
                 </div>
                 
-                {/* DATOS CLIENTE */}
+             {/* DATOS CLIENTE REFORZADOS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <label className="text-zinc-400 text-xs font-bold uppercase ml-1" htmlFor="client">Cliente</label>
+                    <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Tu Nombre</label>
                     <input 
-                        id="client" name="client" type="text" 
-                        defaultValue={userName || ""}
+                        name="client" 
+                        type="text" 
+                        defaultValue={clienteInfo.nombre}
                         className="w-full p-4 rounded-2xl font-bold text-white bg-zinc-900 border-2 border-zinc-800 focus:border-amber-400 outline-none" 
                         placeholder="Nombre completo" 
                     />
-                    {/* ENVIAMOS EL TELÉFONO OCULTO PARA EL BOTÓN DE WHATSAPP */}
-                    <input type="hidden" name="phone" value={userPhone || ""} />
                 </div>
+
+                <div className="space-y-2">
+                    <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Teléfono de Contacto</label>
+                    <input 
+                        name="phone" 
+                        type="tel" 
+                        defaultValue={clienteInfo.telefono}
+                        className="w-full p-4 rounded-2xl font-bold text-white bg-zinc-900 border-2 border-zinc-800 focus:border-amber-400 outline-none" 
+                        placeholder="600 000 000"
+                    />
+                </div>
+            </div>
 
                 <motion.button 
                     whileHover={{ scale: 1.02, backgroundColor: "#fbbf24" }}
