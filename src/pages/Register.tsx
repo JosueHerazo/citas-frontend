@@ -2,22 +2,35 @@ import { Form, Link, type ActionFunctionArgs, redirect, useActionData } from "re
 import { motion } from "framer-motion"
 import ErrorMessaje from "../components/ErrorMessage"
 
+// En la función action de Register.tsx
 export async function action({ request }: ActionFunctionArgs) {
     const formData = await request.formData()
     const data = Object.fromEntries(formData)
-
-    // Validación básica
+    
     if (Object.values(data).includes("")) {
         return "Todos los campos son obligatorios"
     }
 
+    // Validación más robusta
+    const nombre = data.nombre?.toString().trim()
+    const telefono = data.telefono?.toString().trim()
+    
+    if (!nombre || !telefono || !data.username || !data.password) {
+        return "Todos los campos son obligatorios"
+    }
+
+    if (telefono.length < 9) {
+        return "El número de teléfono no es válido"
+    }
+
     try {
-        // Aquí llamarías a tu servicio de backend (ej: registerUser(data))
-        console.log("Enviando datos al backend:", data)
+        // Simulación de guardado en DB
+        console.log("Registrando:", data)
         
-        // Simulación de éxito: Guardar el ID o nombre en localStorage para las citas
-        localStorage.setItem("cliente_nombre", data.nombre as string)
-        localStorage.setItem("cliente_telefono", data.telefono as string)
+        // Guardamos con claves consistentes
+        localStorage.setItem("cliente_nombre", nombre)
+        localStorage.setItem("cliente_telefono", telefono)
+        localStorage.setItem("isLoggedIn", "true")
 
         return redirect("/nuevo/inicio")
     } catch (error) {
@@ -43,7 +56,7 @@ export default function Register() {
                 </p>
             </div>
 
-            {/* {error && <ErrorMessaje>{error}</ErrorMessaje>} */}
+            {error && <ErrorMessaje>{error}</ErrorMessaje>}
 
             <Form method="POST" className="flex flex-col gap-5">
                 {/* NOMBRE COMPLETO */}

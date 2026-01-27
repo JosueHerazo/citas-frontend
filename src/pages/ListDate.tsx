@@ -31,8 +31,8 @@ export default function ListDate() {
         nombre: localStorage.getItem("cliente_nombre") || "",
         telefono: localStorage.getItem("cliente_telefono") || ""
     });
-    const userName = localStorage.getItem("cliente_nombre") || localStorage.getItem("userName");
-    const userPhone = localStorage.getItem("cliente_telefono");
+    // const userName = localStorage.getItem("cliente_nombre") || localStorage.getItem("userName");
+    // const userPhone = localStorage.getItem("cliente_telefono");
 
     const error = useActionData() as string
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
