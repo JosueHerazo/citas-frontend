@@ -1,12 +1,11 @@
 import { Form, Link, type ActionFunctionArgs, redirect, useActionData } from "react-router-dom"
 import { motion } from "framer-motion"
 import ErrorMessaje from "../components/ErrorMessage"
-
 // En la función action de Register.tsx
 export async function action({ request }: ActionFunctionArgs) {
     const formData = await request.formData()
     const data = Object.fromEntries(formData)
-    
+
     if (Object.values(data).includes("")) {
         return "Todos los campos son obligatorios"
     }

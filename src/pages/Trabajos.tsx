@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faStar, faScissors, faMagicWandSparkles, faUserTie } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faStar,  } from "@fortawesome/free-solid-svg-icons";
 
 const SERVICIOS_GALERIA = [
   { id: 1, titulo: "Corte Tradicional", categoria: "Cortes", imagen: "https://images.unsplash.com/photo-1599351431247-f10b21817021?q=80&w=600", desc: "Precisión y estilo clásico." },
