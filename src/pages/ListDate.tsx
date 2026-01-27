@@ -4,6 +4,8 @@ import { motion } from "framer-motion"
 import ErrorMessaje from "../components/ErrorMessage"
 import { addProduct, getBarberAvailability } from "../services/ServiceDates"
 import DatePicker from "../components/DatePicker"
+import { useSubmit } from "react-router-dom";
+
 
 export async function action({ request }: ActionFunctionArgs) {
     const formData = await request.formData()
@@ -27,6 +29,40 @@ const BARBEROS_DATA = [
 ];
 
 export default function ListDate() {
+    // Dentro de tu componente ListDate
+const [template, setTemplate] = useState(
+  "Hola {cliente}, tu cita en LatinosVip ha sido confirmada para el día {fecha} a las {hora}. ¡Te esperamos!"
+);
+const submit = useSubmit();
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const data = Object.fromEntries(formData);
+
+        // 1. Construir el mensaje
+        const mensajeTexto = generarMensaje(data);
+        const telefonoLimpio = data.phone.toString().replace(/\s+/g, '');
+        
+        // 2. Crear URL de WhatsApp
+        const whatsappUrl = `https://wa.me/${telefonoLimpio}?text=${encodeURIComponent(mensajeTexto)}`;
+
+        // 3. Enviar formulario a la DB y luego abrir WhatsApp
+        submit(e.currentTarget);
+        window.open(whatsappUrl, '_blank');
+    };
+
+// Función para reemplazar variables
+const generarMensaje = (datos: any) => {
+  const fechaObj = new Date(datos.dateList);
+  const fecha = fechaObj.toLocaleDateString();
+  const hora = fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  return template
+    .replace("{cliente}", datos.client)
+    .replace("{fecha}", fecha)
+    .replace("{hora}", hora);
+};
     const [clienteInfo] = useState({
         nombre: localStorage.getItem("cliente_nombre") || "",
         telefono: localStorage.getItem("cliente_telefono") || ""
@@ -90,7 +126,7 @@ export default function ListDate() {
             
             {error && <ErrorMessaje>{error}</ErrorMessaje>}
 
-            <Form method="POST" className="flex flex-col gap-6">
+            <Form method="POST" onSubmit={handleSubmit} className="flex flex-col gap-6">
                 
                 {/* BARBEROS */}
                 <div className="space-y-3">
@@ -193,6 +229,18 @@ export default function ListDate() {
                     Confirmar Cita
                 </motion.button>
             </Form>
+                 <div className="mt-10 p-4 bg-zinc-900 rounded-2xl border border-zinc-800">
+                <h3 className="text-amber-400 text-xs font-black uppercase mb-3">Editar Plantilla de WhatsApp</h3>
+                 <textarea 
+                className="w-full bg-black border border-zinc-700 rounded-xl p-3 text-sm text-zinc-300 focus:border-amber-500 outline-none"
+                rows={3}
+                value={template}
+                onChange={(e) => setTemplate(e.target.value)}
+    />
+    <p className="text-[10px] text-zinc-500 mt-2 italic">
+        Usa {"{cliente}"}, {"{fecha}"} y {"{hora}"} para insertar datos automáticos.
+    </p>
+</div>
 
             <footer className="mt-8 text-center">
                 <Link className="text-zinc-600 text-sm font-bold hover:text-amber-400 transition-colors" to="/">
@@ -200,5 +248,6 @@ export default function ListDate() {
                 </Link>
             </footer>
         </motion.div>
+        
     )
 }
