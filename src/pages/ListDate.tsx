@@ -1,16 +1,13 @@
 import { Link, Form, type ActionFunctionArgs, redirect, useActionData } from "react-router-dom"
-import ErrorMessaje from "../components/ErrorMessage"
-import { addProduct } from "../services/ServiceDates"
 import { useState } from "react"
-// Importamos nuestro nuevo componente
+import { motion } from "framer-motion"
+import ErrorMessaje from "../components/ErrorMessage"
+import { addProduct, getBarberAvailability } from "../services/ServiceDates"
 import DatePicker from "../components/DatePicker"
 
 export async function action({ request }: ActionFunctionArgs) {
     const formData = await request.formData()
     const data = Object.fromEntries(formData)
-    
-    // Verificación en consola: verás que 'dateList' ahora sí trae la fecha ISO
-    console.log("Datos enviados:", data);
     
     if (Object.values(data).includes("")) {
         return "Todos los campos son obligatorios"
@@ -18,81 +15,175 @@ export async function action({ request }: ActionFunctionArgs) {
 
     try {
         await addProduct(data)
-        return redirect("/")
+        return redirect("/nuevo/inicio")
     } catch (error) {
         return "Error al guardar la cita"
     }
 }
 
-export default function ListDate() {
-    const error = useActionData() as string
-    
-    // Estado para controlar la fecha seleccionada
-    const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+const BARBEROS_DATA = [
+    { id: "Josue", nombre: "Josue", foto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Josue" },
+    { id: "Vato", nombre: "Vato", foto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Vato" }
+];
 
-    const servicios = ["Corte", "Corte con cejas", "Corte con barba", "Corte Vip", "Corte de Niño", "Barba", "Barba VIP", "Cejas", "Mechas", "Tinte", "Trenzas", "Mask Carbon", "Limpieza Facial", "Diseño", "Lavado de Cabello", "Otros"];
-    const barberos = ["Josue", "Vato"];
-    
+export default function ListDate() {
+    const userName = localStorage.getItem("cliente_nombre") || localStorage.getItem("userName");
+    const userPhone = localStorage.getItem("cliente_telefono");
+
+    const error = useActionData() as string
+    const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+    const [precio, setPrecio] = useState<number | string>("");
+    const [barber, setBarber] = useState("");
+    const [busySlots, setBusySlots] = useState([])
+    const [currentDuration, setCurrentDuration] = useState(30);
+
+    const SERVICIOS_DATA = [
+        { nombre: "Corte", precio: 13, duracion: 30 },
+        { nombre: "Corte con cejas", precio: 15, duracion: 40 },
+        { nombre: "Corte con barba", precio: 18, duracion: 50 },
+        { nombre: "Corte Vip", precio: 25, duracion: 70 },
+        { nombre: "Barba", precio: 8, duracion: 15 },
+        { nombre: "Barba VIP", precio: 11, duracion: 25 },
+        { nombre: "Cejas", precio: 5, duracion: 10},
+        { nombre: "Mechas", precio: 30, duracion: 60 },
+        { nombre: "Tinte", precio: 30, duracion: 60 },
+        { nombre: "Trenzas", precio: 20, duracion: 45 },
+        { nombre: "Mask Carbon", precio: 3, duracion: 10 },
+        { nombre: "Limpieza Facial", precio: 15, duracion: 25 },
+        { nombre: "Diseño", precio: 3, duracion: 10 },
+        { nombre: "Lavado de Cabello", precio: 2, duracion: 10},
+        { nombre: "Otros", precio: 0, duracion: 0 },
+    ];
+
+    const handleServiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const serviceName = e.target.value;
+        const info = SERVICIOS_DATA.find(s => s.nombre === serviceName);
+        if (info) {
+            setPrecio(info.precio);
+            setCurrentDuration(info.duracion);
+        }
+    };
+
+    const handleBarberSelect = async (name: string) => {
+        setBarber(name);
+        if (name) {
+            const occupied = await getBarberAvailability(name);
+            setBusySlots(occupied);
+        }
+    };
+
     return (
-        <div className="mt-10 max-w-md mx-auto">
-            <h2 className="text-2xl font-black text-amber-50 mb-5">Registrar Nuevo Servicio</h2>
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mt-10 max-w-lg mx-auto p-8 bg-zinc-950 border border-zinc-800 rounded-[2.5rem] shadow-2xl"
+        >
+            <header className="text-center mb-8">
+                <h2 className="text-3xl font-black text-white tracking-tight">
+                    Reserva tu <span className="text-amber-400">Experiencia</span>
+                </h2>
+                <p className="text-zinc-500 text-sm mt-2 font-medium">Luce tu mejor versión</p>
+            </header>
             
             {error && <ErrorMessaje>{error}</ErrorMessaje>}
 
-            <Form method="POST" className="flex flex-col gap-4">
+            <Form method="POST" className="flex flex-col gap-6">
+                
+                {/* BARBEROS */}
+                <div className="space-y-3">
+                    <label className="text-zinc-400 text-xs font-bold uppercase tracking-widest ml-1">Especialista</label>
+                    <div className="flex gap-4">
+                        {BARBEROS_DATA.map((b) => (
+                            <motion.div
+                                key={b.id}
+                                whileHover={{ y: -5 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => handleBarberSelect(b.nombre)}
+                                className={`flex-1 cursor-pointer p-4 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center gap-3 ${
+                                    barber === b.nombre 
+                                    ? "border-amber-400 bg-amber-400/5 ring-1 ring-amber-400/50" 
+                                    : "border-zinc-800 bg-zinc-900/50 grayscale hover:grayscale-0"
+                                }`}
+                            >
+                                <img src={b.foto} alt={b.nombre} className="w-14 h-14 rounded-full bg-zinc-800 shadow-inner" />
+                                <span className={`text-sm font-bold ${barber === b.nombre ? "text-amber-400" : "text-zinc-500"}`}>
+                                    {b.nombre}
+                                </span>
+                            </motion.div>
+                        ))}
+                    </div>
+                    <input type="hidden" name="barber" value={barber} />
+                </div>
+
                 {/* SERVICIO */}
-                <div className="mb-4">
-                    <label className="text-amber-50" htmlFor="service">Servicio</label>
-                    <select id="service" name="service" className="mt-2 block w-full font-bold text-white rounded-2xl p-3 bg-zinc-800 border-2 border-amber-400">
-                        <option value="">Selecciona un Servicio</option>
-                        {servicios.map((s) => (<option key={s} value={s}>{s}</option>))}
+                <div className="space-y-2">
+                    <label className="text-zinc-400 text-xs font-bold uppercase ml-1" htmlFor="service">Servicio</label>
+                    <select 
+                        id="service" name="service"
+                        className="w-full font-bold text-white rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800 focus:border-amber-400 focus:outline-none transition-all cursor-pointer appearance-none"
+                        onChange={handleServiceChange}
+                    >
+                        <option value="">¿Qué te haremos hoy?</option>
+                        {SERVICIOS_DATA.map((s) => (
+                            <option key={s.nombre} value={s.nombre}>{s.nombre} — {s.duracion} min</option>
+                        ))}
                     </select>
                 </div>
 
-                {/* PRECIO */}
-                <div className="mb-4">
-                    <label className="text-amber-50" htmlFor="price">Precio:</label>
-                    <input id="price" name="price" type="number" className="mt-2 font-bold text-white block w-full rounded-2xl p-3 bg-zinc-800 border-2 border-amber-400" placeholder="Ej. 15" />
-                </div>
+                {/* PRECIO Y FECHA */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Inversión</label>
+                        <input 
+                            name="price" type="number" value={precio} readOnly
+                            className="w-full font-black text-white rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800"
+                        />
+                    </div>
 
-                {/* BARBERO */}
-                <div className="mb-4">
-                    <label className="text-amber-50" htmlFor="barber">Barbero</label>
-                    <select id="barber" name="barber" className="mt-2 block w-full font-bold text-white rounded-2xl p-3 bg-zinc-800 border-2 border-amber-400">
-                        <option value="">Selecciona Barbero</option>
-                        {barberos.map((b) => (<option key={b} value={b}>{b}</option>))}
-                    </select>
-                </div>
-
-                {/* FECHA (Componente Personalizado) */}
-                <div className="mb-4">
-                    <label className="text-amber-50">Fecha y Hora de la Cita</label>
-                    <DatePicker 
-                        selectedDate={selectedDate} 
-                        onChange={(date) => setSelectedDate(date)} 
-                    />
+                    <div className="space-y-2">
+                        <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Horario</label>
+                        <DatePicker 
+                            selectedDate={selectedDate} 
+                            onChange={(date) => setSelectedDate(date)} 
+                            busySlots={busySlots}
+                        /> 
+                        <input 
+                            type="hidden" 
+                            name="dateList" 
+                            value={selectedDate ? selectedDate.toISOString() : ""} 
+                        />
+                        <input type="hidden" name="duration" value={currentDuration} />
+                    </div>
                 </div>
                 
-                {/* CLIENTE */}
-                <div className="mb-4">
-                    <label className="text-amber-50" htmlFor="client">Nombre del Cliente</label>
-                    <input id="client" name="client" type="text" className="mt-2 block w-full p-3 rounded-2xl font-bold text-white bg-zinc-800 border-2 border-amber-400" placeholder="Nombre completo" />
+                {/* DATOS CLIENTE */}
+                <div className="space-y-2">
+                    <label className="text-zinc-400 text-xs font-bold uppercase ml-1" htmlFor="client">Cliente</label>
+                    <input 
+                        id="client" name="client" type="text" 
+                        defaultValue={userName || ""}
+                        className="w-full p-4 rounded-2xl font-bold text-white bg-zinc-900 border-2 border-zinc-800 focus:border-amber-400 outline-none" 
+                        placeholder="Nombre completo" 
+                    />
+                    {/* ENVIAMOS EL TELÉFONO OCULTO PARA EL BOTÓN DE WHATSAPP */}
+                    <input type="hidden" name="phone" value={userPhone || ""} />
                 </div>
 
-                {/* TELÉFONO */}
-                <div className="mb-4">
-                    <label className="text-amber-50" htmlFor="phone">Teléfono:</label>
-                    <input id="phone" name="phone" type="number" className="mt-2 block w-full p-3 rounded-2xl font-bold text-white bg-zinc-800 border-2 border-amber-400" placeholder="Número de contacto" />
-                </div>
-
-                <input type="submit" className="mt-5 bg-amber-400 p-3 text-white font-black text-lg cursor-pointer rounded-2xl hover:bg-amber-500 transition-colors" value="Reservar citas"/>
+                <motion.button 
+                    whileHover={{ scale: 1.02, backgroundColor: "#fbbf24" }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit" 
+                    className="mt-2 bg-amber-400 py-5 text-black font-black text-xl cursor-pointer rounded-2xl shadow-xl uppercase tracking-widest"
+                >
+                    Confirmar Cita
+                </motion.button>
             </Form>
 
-            <div className="mt-10">
-                <Link className="text-amber-400 font-bold hover:underline" to="/">
-                    ← Volver al Inicio
+            <footer className="mt-8 text-center">
+                <Link className="text-zinc-600 text-sm font-bold hover:text-amber-400 transition-colors" to="/">
+                    ← VOLVER AL INICIO
                 </Link>
-            </div>
-        </div>
+            </footer>
+        </motion.div>
     )
 }

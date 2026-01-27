@@ -49,7 +49,7 @@ if (result.success) {
             phone: +result.output.phone,
             
             
-            // new Date(result.output.dateList)
+         
         }
     )
             
@@ -62,4 +62,30 @@ console.log("❌ Error en la petición:", error
     }
     
     
+}
+
+// services/ServiceDates.ts
+
+export async function getBarberAvailability(barberName: string) {
+    try {
+        const url = `${import.meta.env.VITE_API_URL}/api/date/availability?barber=${barberName}`;
+        const { data } = await axios.get(url);
+        return data.data; // Retorna el array de citas del barbero
+    } catch (error) {
+        console.error("Error trayendo disponibilidad:", error);
+        return [];
+    }
+}
+export async function getHistorialCierres() {
+    try {
+        const url = `${import.meta.env.VITE_API_URL}/api/cierres`;
+        const { data } = await axios.get(url);
+        
+        // Dependiendo de cómo responda tu API, ajusta esto:
+        // Si tu backend responde { data: [...] } usamos data.data
+        return data.data || data || []; 
+    } catch (error) {
+        console.error("Error al obtener historial de cierres:", error);
+        return [];
+    }
 }

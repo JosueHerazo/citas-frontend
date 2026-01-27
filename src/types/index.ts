@@ -1,4 +1,4 @@
-import {number, array, string, email,  pipe, boolean, object, type InferOutput, any, nullable} from "valibot"
+import {number, string, email,  pipe, boolean, object, InferOutput, any,} from "valibot"
 
 export const DraftRegisterSchema = object({
     name: string(),
@@ -27,21 +27,37 @@ export const DraftDateSchema = object({
     phone: number(),  // Cambia date() por any() para evitar el error de parseo
     dateList: string(),
          })
-export const DateSchema = object({
-      id: number(),
-    service: string(),
-    price: number(),
-    barber: string(),
-    client: string(),   
-    phone: number(),
-    createdAt: any(), // IMPORTANTE: Sequelize siempre lo envía
-    updatedAt: any(), // IMPORTANTE: Sequelize siempre lo envía
-    clientId: nullable(any()),     
-    dateList: string()
-     })
 
- export const DatesSchema = array(DateSchema)
+ export const WeeklyClosingSchema = object({
+    id: number(),
+    barber: string(),
+    totalGross: any(), 
+    commission: any(),
+    servicesCount: number(),
+    archivedServiceIds: string(),
+    createdAt: any()
+})
+
+export type WeeklyClosing = InferOutput<typeof WeeklyClosingSchema> 
+
+
+
+// export const DateSchema = object({
+//     id: number(),
+//     service: string(),
+//     price: any(),     // Cambiado a any porque llega como string "25.00"
+//     barber: string(),
+//     client: string(), 
+//     phone: any(),     // Cambiado a any porque llega como string desde BIGINT
+//     dateList: any(),  // Cambiado a any para aceptar null o strings de fecha
+//     // Agregamos estos porque Sequelize los envía y Valibot puede quejarse si no los ve
+//     createdAt: any(),
+//     updatedAt: any(),
+//     clientId: nullable(any())
+//      })
+
+//  export const DatesSchema = array(DateSchema)
 
  
-export type DateList = InferOutput<typeof DateSchema>
+// export type DateList = InferOutput<typeof DateSchema>
 
