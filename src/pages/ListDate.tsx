@@ -5,8 +5,7 @@ import ErrorMessaje from "../components/ErrorMessage"
 import { addProduct, getBarberAvailability } from "../services/ServiceDates"
 import DatePicker from "../components/DatePicker"
 import { useSubmit } from "react-router-dom";
-
-
+import josuePerfil from "../assets/josuePerfil.jpeg"
 export async function action({ request }: ActionFunctionArgs) {
     const formData = await request.formData()
     const data = Object.fromEntries(formData)
@@ -29,6 +28,7 @@ const BARBEROS_DATA = [
 ];
 
 export default function ListDate() {
+    
     // Dentro de tu componente ListDate
 const [template, setTemplate] = useState(
   "Hola {cliente}, tu cita en LatinosVip ha sido confirmada para el día {fecha} a las {hora}. ¡Te esperamos!"
@@ -144,7 +144,7 @@ const generarMensaje = (datos: any) => {
                                     : "border-zinc-800 bg-zinc-900/50 grayscale hover:grayscale-0"
                                 }`}
                             >
-                                <img src={b.foto} alt={b.nombre} className="w-14 h-14 rounded-full bg-zinc-800 shadow-inner" />
+                                <img src={josuePerfil} alt={b.nombre} className="w-14 h-14 rounded-full bg-zinc-800 shadow-inner" />
                                 <span className={`text-sm font-bold ${barber === b.nombre ? "text-amber-400" : "text-zinc-500"}`}>
                                     {b.nombre}
                                 </span>

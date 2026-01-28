@@ -1,20 +1,29 @@
 import { createBrowserRouter } from "react-router-dom";
 
-// Layouts y Protecciones
 import Layout from "./layouts/Layout"; // Ajusta la ruta según tu carpeta
-
-
-// Vistas de Clientes (Públicas o de flujo normal)
 import ListDate, { action as listDateAction } from "./pages/ListDate"
 import Login, { action as loginAction } from "./pages/Login"
 import { ProtectedRoute } from "./pages/ProtectedRoute";
 import Register, { action as registerAction } from "./pages/Register";
 import Videos from "./pages/Videos";
-import Noticias from "./pages/Noticias";
+import Noticias, {action as NewsAction}from "./pages/Noticias";
+import  {loader as NewsLoader}from "./pages/Noticias";
 import Inicio from "./pages/Inicio";
 import Barberos from "./pages/Barberos";
 import Trabajos from "./pages/Trabajos";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+// import { action as adminDashboardAction } from "./pages/admin/AdminDashboard";
+// import { action as adminCierresAction } from "./pages/admin/Cierres";
+// import Cierres from "./pages/admin/Cierres";  
+// import NewsManagement from "./pages/admin/NewsManagement";
+// import { action as adminBarbersAction } from "./pages/admin/Barbers";
+// import BarberManagement from "./pages/admin/BarberManagement";  
+// import { action as adminTrabajosAction } from "./pages/admin/Trabajos";
+// import TrabajosManagement from "./pages/admin/TrabajosManagement";  
+// import { action as adminVideosAction } from "./pages/admin/Videos";
+// import VideosManagement from "./pages/admin/VideosManagement";  
+// import { ImportIcon } from "lucide-react";
+
 
 
 
@@ -56,6 +65,8 @@ export const router = createBrowserRouter([
           {
             path: "nuestras/noticias" ,
             element: <Noticias />,
+            action: NewsAction,
+            loader: NewsLoader
           },
       
       // Autenticación
