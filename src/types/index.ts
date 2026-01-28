@@ -37,27 +37,14 @@ export const DraftDateSchema = object({
     archivedServiceIds: string(),
     createdAt: any()
 })
+// Noticias Schema
+export const NewsSchema = object({
+  description: string(),
+  type: string(), // 'image' o 'video'
+  url: string(),
+  barberId: string() // Para saber quién lo subió
+});
 
 export type WeeklyClosing = InferOutput<typeof WeeklyClosingSchema> 
-
-
-
-// export const DateSchema = object({
-//     id: number(),
-//     service: string(),
-//     price: any(),     // Cambiado a any porque llega como string "25.00"
-//     barber: string(),
-//     client: string(), 
-//     phone: any(),     // Cambiado a any porque llega como string desde BIGINT
-//     dateList: any(),  // Cambiado a any para aceptar null o strings de fecha
-//     // Agregamos estos porque Sequelize los envía y Valibot puede quejarse si no los ve
-//     createdAt: any(),
-//     updatedAt: any(),
-//     clientId: nullable(any())
-//      })
-
-//  export const DatesSchema = array(DateSchema)
-
- 
-// export type DateList = InferOutput<typeof DateSchema>
+export type DraftRegister = InferOutput<typeof DraftRegisterSchema>
 

@@ -52,18 +52,34 @@ export default function Noticias() {
         setShowHeartAnim(postId);
         setTimeout(() => setShowHeartAnim(null), 800); // El corazón desaparece tras 800ms
     };
+    const [showUpload, setShowUpload] = useState(false);
 
     return (
         <div className="relative h-[100dvh] w-full bg-black overflow-hidden font-sans">
             
-            {/* HEADER FLOTANTE */}
-            <div className="fixed top-0 w-full z-50 flex justify-between p-6 items-center bg-gradient-to-b from-black/80 to-transparent">
-                <h2 className="text-white font-black text-2xl italic tracking-tighter">LATINOS<span className="text-amber-400">VIP</span></h2>
-                <button className="bg-amber-400 p-2 rounded-full text-black shadow-lg active:scale-90 transition-transform">
-                    <PlusCircle size={28} />
-                </button>
-            </div>
-
+        {/* HEADER FLOTANTE - Forzamos el Z-Index para que esté por encima de todo */}
+<div className="fixed top-0 w-full z-[100] flex justify-between p-6 items-center bg-gradient-to-b from-black/90 to-transparent">
+    <h2 className="text-white font-black text-2xl italic tracking-tighter">
+        LATINOS<span className="text-amber-400">VIP</span>
+    </h2>
+    
+    {/* Botón de subida con animación de pulso para que resalte */}
+    <motion.button 
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setShowUpload(true)} 
+        className="bg-amber-400 p-3 rounded-full text-black shadow-[0_0_20px_rgba(251,191,36,0.5)] border-2 border-black"
+    >
+        <PlusCircle size={30} strokeWidth={3} />
+    </motion.button>
+</div>
+          {showUpload && (
+      <div className="fixed inset-0 z-[200] bg-black p-10 text-white">
+        <button onClick={() => setShowUpload(false)}>Cerrar</button>
+        {/* Aquí iría tu formulario para subir el video */}
+        <h2>Subir nueva noticia</h2>
+      </div>
+        )}
             {/* FEED VERTICAL */}
             <div className="h-full overflow-y-scroll snap-y snap-mandatory hide-scrollbar">
                 {displayFeeds.map((post) => (
