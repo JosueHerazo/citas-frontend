@@ -1,212 +1,232 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, MessageCircle, Heart, Share2, Send, PlusCircle } from "lucide-react";
-import { ActionFunctionArgs, redirect, useLoaderData } from "react-router-dom";
-import { addNews, getNews } from "../services/ServiceNews";
-import VideoPost from "../components/VideoPost";
+// pages/Noticias.tsx
+import { useState } from 'react';
+import { useLoaderData, Form, ActionFunctionArgs } from 'react-router-dom';
+import { Heart, MessageCircle, PlusCircle, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import VideoPost from '../components/VideoPost';
+import { addNews, getNews } from '../services/ServiceNews';
+import { postComment, toggleLikeInDB } from '../services/ServiceComments';
 
-export interface NewsItem {
-    id: number;
-    user: string;
-    type: 'image' | 'video';
-    url: string;
-    description: string;
-    likes: number;
-    comments: any[];
+// Definimos una interfaz mínima para los posts (puedes expandirla según tu modelo real)
+interface NewsPost {
+  id: number;
+  clientName: string;
+  description: string;
+  url: string;
+  type: 'image' | 'video';
+  likes: number;
+  comments?: Array<{ userName: string; text: string }>;
+  liked?: boolean; // opcional: si ya le dio like el usuario actual
 }
 
-export async function loader() {
-    const news = await getNews();
-    return news || [];
-}
+export const loader = async () => {
+  try {
+    return (await getNews()) as NewsPost[];
+  } catch (error) {
+    console.error("Error al cargar las noticias:", error);
+    return [];
+  }
+};
 
-export async function action({ request }: ActionFunctionArgs) {
-    const formData = await request.formData();
-    try {
-        await addNews(formData);
-        return redirect("/nuestras/noticias");
-    } catch (error) {
-        return "Error al publicar";
-    }
-}
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const formData = await request.formData();
+  try {
+    await addNews(formData);
+    return { success: true };
+  } catch (error) {
+    return { error: 'Error al publicar' };
+  }
+};
 
 export default function Noticias() {
-    const rawData = useLoaderData();
-    const newsData = Array.isArray(rawData) ? (rawData as NewsItem[]) : [];
-    
-    const [showComments, setShowComments] = useState<number | null>(null);
-    const [commentsList, setCommentsList] = useState<any[]>([]);
-    const [commentText, setCommentText] = useState("");
-    const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({});
-    const [showHeartAnim, setShowHeartAnim] = useState<number | null>(null); // Para el corazón gigante
+  const posts = useLoaderData() as NewsPost[] || [];
+  const [selectedPost, setSelectedPost] = useState<NewsPost | null>(null);
+  const [comment, setComment] = useState<string>('');
+  const [showUpload, setShowUpload] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-    const mockFeeds: NewsItem[] = [
-        { id: 1, user: "Josue Barber", type: 'video', url: "https://assets.mixkit.co/videos/preview/mixkit-stylist-cutting-hair-of-a-male-client-44432-large.mp4", description: "Corte VIP del día.", likes: 120, comments: [] }
-    ];
+  const handleLike = async (postId: number) => {
+    try {
+      const userId = localStorage.getItem('userId') || 'anonymous';
+      await toggleLikeInDB(postId, userId);
+      // Refrescamos para ver el cambio (puedes optimizar con estado local después)
+      window.location.reload();
+    } catch (err) {
+      setError('Error al dar like');
+    }
+  };
 
-    const displayFeeds = newsData.length > 0 ? newsData : mockFeeds;
+  const handleComment = async (postId: number) => {
+    if (!comment.trim()) return;
 
-    // Lógica de Doble Tap
-    const handleDoubleTap = (postId: number) => {
-        setLikedPosts(prev => ({ ...prev, [postId]: true }));
-        setShowHeartAnim(postId);
-        setTimeout(() => setShowHeartAnim(null), 800); // El corazón desaparece tras 800ms
-    };
-    const [showUpload, setShowUpload] = useState(false);
+    try {
+      const userName = localStorage.getItem('userName') || 'Anonymous';
+      await postComment(postId, comment, userName);
+      setComment('');
+      window.location.reload();
+    } catch (err) {
+      setError('Error al comentar');
+    }
+  };
 
-    return (
-        <div className="relative h-[100dvh] w-full bg-black overflow-hidden font-sans">
-            
-        {/* HEADER FLOTANTE - Forzamos el Z-Index para que esté por encima de todo */}
-<div className="fixed top-0 w-full z-[100] flex justify-between p-6 items-center bg-gradient-to-b from-black/90 to-transparent">
-    <h2 className="text-white font-black text-2xl italic tracking-tighter">
-        LATINOS<span className="text-amber-400">VIP</span>
-    </h2>
-    
-    {/* Botón de subida con animación de pulso para que resalte */}
-    <motion.button 
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => setShowUpload(true)} 
-        className="bg-amber-400 p-3 rounded-full text-black shadow-[0_0_20px_rgba(251,191,36,0.5)] border-2 border-black"
-    >
-        <PlusCircle size={30} strokeWidth={3} />
-    </motion.button>
-</div>
-          {showUpload && (
-      <div className="fixed inset-0 z-[200] bg-black p-10 text-white">
-        <button onClick={() => setShowUpload(false)}>Cerrar</button>
-        {/* Aquí iría tu formulario para subir el video */}
-        <h2>Subir nueva noticia</h2>
-      </div>
+  return (
+    <div className="min-h-screen bg-black text-white p-4">
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      {/* Botón para abrir modal de subida */}
+      <button
+        onClick={() => setShowUpload(true)}
+        className="fixed bottom-6 right-6 bg-amber-500 p-4 rounded-full shadow-lg z-50"
+      >
+        <PlusCircle size={28} />
+      </button>
+
+      {/* Modal de subida */}
+      <AnimatePresence>
+        {showUpload && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          >
+            <div className="bg-zinc-900 rounded-2xl p-6 w-full max-w-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Subir Noticia</h2>
+                <X
+                  onClick={() => setShowUpload(false)}
+                  className="cursor-pointer text-white hover:text-amber-400"
+                  size={24}
+                />
+              </div>
+
+              <Form
+                method="post"
+                encType="multipart/form-data"
+                // Cerramos modal al enviar (puedes mejorar con estado de carga)
+                onSubmit={() => setTimeout(() => setShowUpload(false), 300)}
+                className="space-y-4"
+              >
+                <input
+                  type="file"
+                  name="file"
+                  accept="image/*,video/*"
+                  required
+                  className="w-full p-2 bg-zinc-800 rounded text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-amber-500 file:text-black hover:file:bg-amber-400"
+                />
+                <textarea
+                  name="description"
+                  placeholder="¿Qué quieres compartir hoy?..."
+                  className="w-full bg-zinc-800 p-3 rounded-xl min-h-[100px] text-white resize-y focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+                <input
+                  type="hidden"
+                  name="clientName"
+                  value={localStorage.getItem('userName') || 'Anonymous'}
+                />
+                <button
+                  type="submit"
+                  className="bg-amber-500 text-black py-3 rounded-xl w-full font-bold hover:bg-amber-400 transition-colors"
+                >
+                  Publicar
+                </button>
+              </Form>
+            </div>
+          </motion.div>
         )}
-            {/* FEED VERTICAL */}
-            <div className="h-full overflow-y-scroll snap-y snap-mandatory hide-scrollbar">
-                {displayFeeds.map((post) => (
-                    <div key={post.id} className="relative h-screen w-full snap-start flex items-center justify-center overflow-hidden">
-                        
-                        {/* ÁREA DE DOBLE TAP */}
-                        <div 
-                            className="absolute inset-0 z-10" 
-                            onDoubleClick={() => handleDoubleTap(post.id)}
-                        />
+      </AnimatePresence>
 
-                        {/* CONTENIDO PRINCIPAL */}
-                        {post.type === 'video' ? (
-                            <VideoPost url={post.url} />
-                        ) : (
-                            <img src={post.url} className="h-full w-full object-cover" alt="Feed" />
-                        )}
+      {/* Feed de publicaciones */}
+      <div className="space-y-8 pb-20">
+        {posts.map((post) => (
+          <div key={post.id} className="bg-zinc-900 rounded-2xl p-5 shadow-lg">
+            <p className="font-bold text-amber-500 mb-1">@{post.clientName}</p>
+            <p className="text-gray-200 mb-3">{post.description}</p>
 
-                        {/* ANIMACIÓN DE CORAZÓN GIGANTE (Doble Tap) */}
-                        <AnimatePresence>
-                            {showHeartAnim === post.id && (
-                                <motion.div 
-                                    initial={{ scale: 0, opacity: 0 }}
-                                    animate={{ scale: 1.5, opacity: 1 }}
-                                    exit={{ scale: 2, opacity: 0 }}
-                                    className="absolute z-20 pointer-events-none"
-                                >
-                                    <Heart size={100} className="text-red-700 fill-current drop-shadow-2xl" />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+            {post.type === 'video' ? (
+              <VideoPost url={post.url} />
+            ) : (
+              <img
+                src={post.url}
+                alt="Publicación"
+                className="w-full rounded-lg object-cover max-h-[500px]"
+              />
+            )}
 
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80 pointer-events-none" />
+            <div className="flex gap-6 mt-4">
+              <button
+                onClick={() => handleLike(post.id)}
+                className="flex items-center gap-2 text-gray-300 hover:text-red-400 transition-colors"
+              >
+                <Heart
+                  className={post.liked ? 'fill-red-500 text-red-500' : ''}
+                  size={24}
+                />
+                <span>{post.likes}</span>
+              </button>
 
-                        {/* ACCIONES LATERALES */}
-                        <div className="absolute right-4 bottom-32 flex flex-col gap-6 z-30">
-                            <button 
-                                onClick={() => setLikedPosts(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
-                                className="flex flex-col items-center group"
-                            >
-                                <motion.div whileTap={{ scale: 1.4 }}>
-                                    <Heart size={38} className={likedPosts[post.id] ? "text-red-500 fill-current" : "text-white"} />
-                                </motion.div>
-                                <span className="text-white text-xs font-bold mt-1 shadow-black drop-shadow-md">
-                                    {post.likes + (likedPosts[post.id] ? 1 : 0)}
-                                </span>
-                            </button>
+              <button
+                onClick={() => setSelectedPost(post)}
+                className="flex items-center gap-2 text-gray-300 hover:text-amber-400 transition-colors"
+              >
+                <MessageCircle size={24} />
+                <span>{post.comments?.length || 0}</span>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
 
-                            <button 
-                                onClick={() => { setShowComments(post.id); setCommentsList(post.comments || []); }} 
-                                className="text-white flex flex-col items-center"
-                            >
-                                <MessageCircle size={38} />
-                                <span className="text-xs font-bold mt-1 drop-shadow-md">{post.comments?.length || 0}</span>
-                            </button>
+      {/* Modal de comentarios */}
+      {selectedPost && (
+        <motion.div
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          className="fixed inset-x-0 bottom-0 bg-zinc-900 p-6 rounded-t-3xl max-h-[85vh] overflow-y-auto z-40 border-t border-zinc-700"
+        >
+          <div className="relative">
+            <X
+              onClick={() => setSelectedPost(null)}
+              className="absolute top-0 right-0 cursor-pointer text-gray-400 hover:text-white"
+              size={28}
+            />
+            <h3 className="text-xl font-bold mb-5 text-center">Comentarios</h3>
 
-                            <button className="text-white flex flex-col items-center opacity-90">
-                                <Share2 size={34} />
-                            </button>
-                        </div>
-
-                        {/* INFO DEL POST */}
-                        <div className="absolute bottom-12 left-4 right-16 text-white z-30 pointer-events-none">
-                            <p className="font-black text-lg mb-1 italic drop-shadow-lg">@{post.user}</p>
-                            <p className="text-sm opacity-90 line-clamp-2 drop-shadow-md leading-relaxed">{post.description}</p>
-                        </div>
-                    </div>
-                ))}
+            <div className="space-y-4 mb-6">
+              {selectedPost.comments?.length ? (
+                selectedPost.comments.map((c, i) => (
+                  <div key={i} className="bg-zinc-800 p-3 rounded-xl">
+                    <span className="font-semibold text-amber-400">@{c.userName}</span>
+                    <p className="text-gray-200 mt-1">{c.text}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-gray-500 py-8">
+                  Sé el primero en comentar
+                </p>
+              )}
             </div>
 
-            {/* PANEL DE COMENTARIOS */}
-            <AnimatePresence>
-                {showComments !== null && (
-                    <>
-                        <motion.div 
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
-                            onClick={() => setShowComments(null)} 
-                            className="fixed inset-0 bg-black/70 z-[70] backdrop-blur-sm" 
-                        />
-                        <motion.div 
-                            initial={{ y: "100%" }} animate={{ y: "35%" }} exit={{ y: "100%" }} 
-                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                            className="fixed inset-0 z-[80] bg-zinc-900 rounded-t-[2.5rem] p-6 flex flex-col border-t border-white/10"
-                        >
-                            <div className="w-12 h-1 bg-zinc-700 rounded-full mx-auto mb-6" />
-                            <div className="flex justify-between items-center text-white mb-6">
-                                <span className="font-black text-xl uppercase tracking-widest text-amber-400">Comentarios</span>
-                                <X onClick={() => setShowComments(null)} className="cursor-pointer text-zinc-500" />
-                            </div>
-
-                            <div className="flex-1 overflow-y-auto space-y-5 pb-32 custom-scrollbar">
-                                {commentsList.length > 0 ? (
-                                    commentsList.map((c, i) => (
-                                        <div key={i} className="flex gap-4 items-start animate-fade-in">
-                                            <div className="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-amber-400 font-bold">
-                                                {c.userName?.charAt(0)}
-                                            </div>
-                                            <div className="flex-1">
-                                                <p className="font-bold text-zinc-400 text-xs">@{c.userName}</p>
-                                                <p className="text-white text-sm mt-0.5 leading-snug">{c.text}</p>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-20 text-zinc-600 font-medium">No hay comentarios aún.</div>
-                                )}
-                            </div>
-
-                            <div className="absolute bottom-0 left-0 w-full p-6 bg-zinc-900/95 backdrop-blur-md border-t border-white/5 flex gap-3">
-                                <input 
-                                    type="text" 
-                                    value={commentText}
-                                    onChange={(e) => setCommentText(e.target.value)}
-                                    placeholder="Añade un comentario..."
-                                    className="bg-zinc-800 text-white flex-1 px-5 py-3.5 rounded-2xl outline-none text-sm focus:ring-2 focus:ring-amber-400 transition-all"
-                                />
-                                <button 
-                                    onClick={() => { console.log("Enviado"); setCommentText(""); }}
-                                    className="bg-amber-400 text-black px-6 rounded-2xl font-bold active:scale-90 transition-transform flex items-center justify-center"
-                                >
-                                    <Send size={18} />
-                                </button>
-                            </div>
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
-        </div>
-    );
+            <div className="flex gap-2 sticky bottom-0 bg-zinc-900 pt-4 border-t border-zinc-700">
+              <input
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Escribe un comentario..."
+                className="flex-1 bg-zinc-800 p-3 rounded-l-xl text-white outline-none focus:ring-2 focus:ring-amber-500"
+              />
+              <button
+                onClick={() => handleComment(selectedPost.id)}
+                disabled={!comment.trim()}
+                className="bg-amber-500 text-black px-5 rounded-r-xl font-semibold hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Enviar
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
 }
