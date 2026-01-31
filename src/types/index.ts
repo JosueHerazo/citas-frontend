@@ -2,18 +2,17 @@ import {number, string, email,  pipe, boolean, object, InferOutput, any,} from "
 
 export const DraftRegisterSchema = object({
     name: string(),
-    password:  number(), 
-    email: pipe(string(), email()),
     phone: number(),
     terms: boolean()
     // menssage:string
 })
 
 export const RegisterSchema = object({
-   
+    
     id: number(),
     name:   string(),
-    email: string(),
+    password:  string(), 
+    email: pipe(string(), email()),
     phone: number(),
     terms: boolean()
     // menssage:string
@@ -45,6 +44,9 @@ export const NewsSchema = object({
   barberId: string() // Para saber quién lo subió
 });
 
+export type Register = InferOutput<typeof RegisterSchema>
+export type DraftDate = InferOutput<typeof DraftDateSchema>     
+export type DraftNews = InferOutput<typeof NewsSchema>  
 export type WeeklyClosing = InferOutput<typeof WeeklyClosingSchema> 
 export type DraftRegister = InferOutput<typeof DraftRegisterSchema>
 
