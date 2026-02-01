@@ -59,7 +59,7 @@ export default function Noticias() {
     return (
         <div className="h-screen w-full bg-black overflow-y-scroll snap-y snap-mandatory no-scrollbar">
             {/* Botón Flotante para Subir */}
-           Cannot find name 'uploadFetcher'.
+           {/* Cannot find name 'uploadFetcher'. */}
 
             {posts.length > 0 ? (
                 posts.map((post: any) => (

@@ -5,7 +5,7 @@ import axios from "axios";
 export async function getNews() {
     try {
         
-        const url = `${import.meta.env.DATABASE_URL}/api/news`;
+        const url = `${import.meta.env.VITE_API_URL}/api/news`;
         const { data } = await axios.get(url);
         // Retornamos la data. Si tu backend devuelve { data: [...] }, usa data.data
         return data; 
@@ -17,7 +17,7 @@ export async function getNews() {
 
 export async function addNews(formData: FormData) {
     try {
-        const url = `${import.meta.env.DATABASE_URL}/api/news`;
+        const url = `${import.meta.env.VITE_API_URL}/api/news`;
         const { data } = await axios.post(url, formData, {
             headers: {
                 "Content-Type": "multipart/form-data",
