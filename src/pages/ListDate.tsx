@@ -46,9 +46,9 @@ const SERVICIOS_DATA = [
 ];
 
 export default function ListDate() {
+    const [ocupados, setOcupados] = useState<string[]>([]);
     const submit = useSubmit();
     const error = useActionData() as string;
-
     const [template, setTemplate] = useState(
         "Hola {cliente}, tu cita en LatinosVip ha sido confirmada para el día {fecha} a las {hora}. Recuerda que las citas se reservan con 3h de antelación. ¡Te esperamos!"
     );
@@ -85,15 +85,17 @@ export default function ListDate() {
         }
     };
 
-    const handleBarberSelect = async (name: string) => {
-        setBarber(name);
+    const handleBarberSelect = async (barberId: string) => {
+        setBarber(barberId);
         setIsLoadingAvailability(true);
         try {
-            const occupied = await getBarberAvailability(name);
+            const occupied = await getBarberAvailability(barberId);
             setBusySlots(occupied);
         } finally {
             setIsLoadingAvailability(false);
         }
+        const fechasOcupadas = await getBarberAvailability(barberId);
+    setOcupados(fechasOcupadas);
     };
 
     const generarMensaje = (datos: any) => {
@@ -113,6 +115,7 @@ export default function ListDate() {
         submit(e.currentTarget);
         window.open(whatsappUrl, '_blank');
     };
+    
 
     return (
         <motion.div 
@@ -147,8 +150,9 @@ export default function ListDate() {
                                     : "border-zinc-800 bg-zinc-900/50 grayscale hover:grayscale-0"
                                 }`}
                             >
-                                <img src={b.foto} alt={b.nombre} className="w-12 h-12 rounded-full mx-auto mb-2 object-cover border border-zinc-700" />
-                                <p className="text-center text-[10px] font-black text-white uppercase tracking-tighter">{b.nombre}</p>
+                                <div onClick={() => handleBarberSelect(b.id)}>
+                                    <img src={b.foto} />
+                                    </div>
                             </div>
                         ))}
                     </div>
