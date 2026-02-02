@@ -54,8 +54,7 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots }: 
                 onChange={onChange}
                 showTimeSelect
                 locale="es"
-                filterTime={filterOccupied} 
-                timeCaption="Hora"
+                filterTime={filterOccupied} // Esto hará que las horas ocupadas no se puedan clickear                timeCaption="Hora"
                 dateFormat="Pp"
                 placeholderText="Selecciona fecha y hora"
                 className="mt-2 block w-full p-3 rounded-2xl font-bold text-white bg-zinc-800 border-2 border-amber-400 focus:outline-none focus:border-amber-200"
