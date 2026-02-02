@@ -1,91 +1,62 @@
-import { safeParse} from "valibot"
-import axios from "axios"
-import { DraftDateSchema } from "../types";
-
-type serviceData = {
-
-    [k: string]: FormDataEntryValue;
-
-}
-export async function addProduct(data : serviceData) {
-    try {
-        
-        const priceNumber = Number(data.price);
-        // const dateListNumber = Number(data.dateList);
-        // VALIBOT LIMPIA LOS DATOS Y PARSEA EL TYPE
-        const result = safeParse(DraftDateSchema,
-            {
-                barber: data.barber,
-                service: data.service,
-                price: isNaN(priceNumber) ? 0 : priceNumber, 
-                dateList: data. dateList,
-                client: data.client,
-                phone: Number(data.phone),
-               
-                
-            })
-        console.log(result);
-        
-        // LUEGO SI LOS RESULTADOS CON CORECTOS 
-if (result.success) {
-    // SE CREA LA RUTA DE DESTINO
-    const url = `${import.meta.env.VITE_API_URL}/api/date`
-    // VALIDACIÓN DE FECHA ANTES DE ENVIAR
-    //   const rawDate = result.output.dateList;
-    //   const dateObject = new Date(rawDate);
-
-      // Si la fecha es inválida, usamos la fecha actual para que no explote
-    //   const finalDate = isNaN(dateObject.getTime()) 
-    //     ? new Date().toISOString() 
-    //     : dateObject.toISOString();
-    
-     await axios.post(url, 
-        {
-            barber: result.output.barber,
-            service: result.output.service,
-            price: +result.output.price,
-            dateList: result.output.dateList, // Formatear a "YYYY-MM-DD"
-            client: result.output.client,   
-            phone: +result.output.phone,
-            
-            
-         
-        }
-    )
-            
-    console.log("✅ Guardado con éxito en la DB");
-} else {
-    console.error("Errores de validación:", result.issues);
-}    } catch (error) {
-console.log("❌ Error en la petición:", error    
-);        
-    }
-    
-    
-}
-
 // services/ServiceDates.ts
+import axios from "axios";
+
+const HORARIOS_BARBERIA = {
+    0: null, // Domingo: Cerrado
+    1: { inicio: 10, fin: 20 }, // Lunes
+    2: { inicio: 10, fin: 20 }, // Martes
+    3: { inicio: 10, fin: 20 }, // Miércoles
+    4: { inicio: 10, fin: 21 }, // Jueves
+    5: { inicio: 10, fin: 21 }, // Viernes
+    6: { inicio: 10, fin: 21 }, // Sábado
+};
+
+export async function addProduct(data: any) {
+    try {
+        const selectedDate = new Date(data.dateList);
+        const diaSemana = selectedDate.getDay();
+        const hora = selectedDate.getHours();
+        const horarioHoy = HORARIOS_BARBERIA[diaSemana as keyof typeof HORARIOS_BARBERIA];
+
+        // 1. Validar si es Domingo o está fuera de hora
+        if (!horarioHoy) {
+            throw new Error("La barbería está cerrada los domingos");
+        }
+        if (hora < horarioHoy.inicio || hora >= horarioHoy.fin) {
+            throw new Error(`Horario hoy: ${horarioHoy.inicio}:00 a ${horarioHoy.fin}:00`);
+        }
+
+        // 2. Validar 3 horas de antelación
+        const now = new Date();
+        if (selectedDate.getTime() < now.getTime() + (3 * 60 * 60 * 1000)) {
+            throw new Error("Reserva con mínimo 3 horas de antelación");
+        }
+
+        const url = `${import.meta.env.VITE_API_URL}/api/date`;
+        const response = await axios.post(url, {
+            ...data,
+            price: Number(data.price),
+            phone: Number(data.phone)
+        });
+        
+        return response.data;
+    } catch (error: any) {
+        // Extraer el mensaje de error para mostrarlo en el componente
+        const msg = error.response?.data?.error || error.message;
+        console.error("❌ Error:", msg);
+        throw new Error(msg); 
+    }
+}
 
 export async function getBarberAvailability(barberName: string) {
+    if (!barberName) return [];
     try {
-        const url = `${import.meta.env.VITE_API_URL}/api/date/availability?barber=${barberName}`;
-        const { data } = await axios.get(url);
-        return data.data; // Retorna el array de citas del barbero
+        // Usamos params de axios para evitar errores de formato en la URL
+        const url = `${import.meta.env.VITE_API_URL}/api/date/availability`;
+        const { data } = await axios.get(url, { params: { barber: barberName } });
+        return data.data || data; 
     } catch (error) {
         console.error("Error trayendo disponibilidad:", error);
-        return [];
-    }
-}
-export async function getHistorialCierres() {
-    try {
-        const url = `${import.meta.env.VITE_API_URL}/api/cierres`;
-        const { data } = await axios.get(url);
-        
-        // Dependiendo de cómo responda tu API, ajusta esto:
-        // Si tu backend responde { data: [...] } usamos data.data
-        return data.data || data || []; 
-    } catch (error) {
-        console.error("Error al obtener historial de cierres:", error);
         return [];
     }
 }
