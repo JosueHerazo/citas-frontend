@@ -1,5 +1,11 @@
-// services/ServiceDates.ts
+import { safeParse } from "valibot";
 import axios from "axios";
+import { DraftDateSchema } from "../types";
+
+// Tipado para los datos crudos del formulario
+type ServiceData = {
+    [k: string]: FormDataEntryValue;
+};
 
 const HORARIOS_BARBERIA = {
     0: null, // Domingo: Cerrado
@@ -11,14 +17,30 @@ const HORARIOS_BARBERIA = {
     6: { inicio: 10, fin: 21 }, // Sábado
 };
 
-export async function addProduct(data: any) {
+export async function addProduct(data: ServiceData) {
     try {
-        const selectedDate = new Date(data.dateList);
+        // 1. Validar tipos con Valibot
+        const result = safeParse(DraftDateSchema, {
+            barber: data.barber,
+            service: data.service,
+            price: Number(data.price) || 0,
+            dateList: data.dateList,
+            client: data.client,
+            phone: Number(data.phone),
+        });
+
+        if (!result.success) {
+            console.error("Errores de validación Valibot:", result.issues);
+            throw new Error("Datos del formulario inválidos");
+        }
+
+        const { output } = result;
+        const selectedDate = new Date(output.dateList as string);
         const diaSemana = selectedDate.getDay();
         const hora = selectedDate.getHours();
         const horarioHoy = HORARIOS_BARBERIA[diaSemana as keyof typeof HORARIOS_BARBERIA];
 
-        // 1. Validar si es Domingo o está fuera de hora
+        // 2. Validar Horario Comercial
         if (!horarioHoy) {
             throw new Error("La barbería está cerrada los domingos");
         }
@@ -26,24 +48,22 @@ export async function addProduct(data: any) {
             throw new Error(`Horario hoy: ${horarioHoy.inicio}:00 a ${horarioHoy.fin}:00`);
         }
 
-        // 2. Validar 3 horas de antelación
+        // 3. Validar antelación (3 horas)
         const now = new Date();
         if (selectedDate.getTime() < now.getTime() + (3 * 60 * 60 * 1000)) {
-            throw new Error("Reserva con mínimo 3 horas de antelación");
+            throw new Error("La cita debe ser con al menos 3 horas de antelación");
         }
 
+        // 4. Enviar al Backend
         const url = `${import.meta.env.VITE_API_URL}/api/date`;
-        const response = await axios.post(url, {
-            ...data,
-            price: Number(data.price),
-            phone: Number(data.phone)
-        });
+        const response = await axios.post(url, output);
         
+        console.log("✅ Cita guardada con éxito");
         return response.data;
+
     } catch (error: any) {
-        // Extraer el mensaje de error para mostrarlo en el componente
-        const msg = error.response?.data?.error || error.message;
-        console.error("❌ Error:", msg);
+        const msg = error.response?.data?.error || error.message || "Error desconocido";
+        console.error("❌ Error en la petición:", msg);
         throw new Error(msg); 
     }
 }
@@ -51,12 +71,28 @@ export async function addProduct(data: any) {
 export async function getBarberAvailability(barberName: string) {
     if (!barberName) return [];
     try {
-        // Usamos params de axios para evitar errores de formato en la URL
+        // IMPORTANTE: Asegúrate que tu backend escuche en /availability
+        // y reciba el barbero por query string (?barber=...)
         const url = `${import.meta.env.VITE_API_URL}/api/date/availability`;
-        const { data } = await axios.get(url, { params: { barber: barberName } });
-        return data.data || data; 
+        const { data } = await axios.get(url, { 
+            params: { barber: barberName } 
+        });
+        
+        // Retornamos el array de fechas ocupadas
+        return data.data || data || []; 
     } catch (error) {
         console.error("Error trayendo disponibilidad:", error);
+        return [];
+    }
+}
+
+export async function getHistorialCierres() {
+    try {
+        const url = `${import.meta.env.VITE_API_URL}/api/cierres`;
+        const { data } = await axios.get(url);
+        return data.data || data || []; 
+    } catch (error) {
+        console.error("Error al obtener historial de cierres:", error);
         return [];
     }
 }
