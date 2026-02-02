@@ -74,9 +74,7 @@ export async function getBarberAvailability(barberName: string) {
         // IMPORTANTE: Asegúrate que tu backend escuche en /availability
         // y reciba el barbero por query string (?barber=...)
         const url = `${import.meta.env.VITE_API_URL}/api/date/availability/${barberName}`;
-        const { data } = await axios.get(url, { 
-            params: { barber: barberName } 
-        });
+        const { data } = await axios.get(url);
         
         // Retornamos el array de fechas ocupadas
         return data.data || data || []; 
