@@ -49,7 +49,6 @@ export default function ListDate() {
     const submit = useSubmit();
     const error = useActionData() as string;
 
-    // Estados
     const [template, setTemplate] = useState(
         "Hola {cliente}, tu cita en LatinosVip ha sido confirmada para el día {fecha} a las {hora}. Recuerda que las citas se reservan con 3h de antelación. ¡Te esperamos!"
     );
@@ -65,7 +64,11 @@ export default function ListDate() {
         telefono: localStorage.getItem("cliente_telefono") || ""
     });
 
-    // --- Lógica ---
+    const getLocalISOString = (date: Date) => {
+        const offset = date.getTimezoneOffset() * 60000;
+        return new Date(date.getTime() - offset).toISOString();
+    };
+
     const isTimeValid = (date: Date | null) => {
         if (!date) return false;
         const now = new Date();
@@ -104,7 +107,9 @@ export default function ListDate() {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const data = Object.fromEntries(formData);
+        
         const whatsappUrl = `https://wa.me/${data.phone.toString().replace(/\s+/g, '')}?text=${encodeURIComponent(generarMensaje(data))}`;
+        
         submit(e.currentTarget);
         window.open(whatsappUrl, '_blank');
     };
@@ -118,15 +123,17 @@ export default function ListDate() {
                 <h2 className="text-3xl font-black text-white">Reserva tu <span className="text-amber-400">Cita</span></h2>
             </header>
 
-            <div className="mb-6 p-4 bg-amber-400/10 border border-amber-400/20 rounded-2xl">
-                <p className="text-amber-400 text-xs font-medium text-center leading-relaxed">
-                    ⚠️ <span className="font-black uppercase italic">Importante:</span> Citas con un mínimo de <span className="font-bold underline">3 horas de antelación</span>.
+            <div className="mb-6 p-4 bg-amber-400/10 border border-amber-400/20 rounded-2xl text-center">
+                <p className="text-amber-400 text-xs font-medium leading-relaxed italic">
+                    ⚠️ Mínimo 3 horas de antelación para reservar.
                 </p>
             </div>
 
+            {/* AQUÍ USAMOS 'error' */}
             {error && <ErrorMessaje>{error}</ErrorMessaje>}
 
             <Form method="POST" onSubmit={handleSubmit} className="flex flex-col gap-6">
+                
                 <div className="space-y-3">
                     <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Especialista</label>
                     <div className="flex gap-4">
@@ -134,12 +141,14 @@ export default function ListDate() {
                             <div
                                 key={b.id}
                                 onClick={() => handleBarberSelect(b.nombre)}
-                                className={`flex-1 cursor-pointer p-4 rounded-3xl border-2 transition-all ${
-                                    barber === b.nombre ? "border-amber-400 bg-amber-400/5" : "border-zinc-800 bg-zinc-900/50 grayscale"
+                                className={`flex-1 cursor-pointer p-4 rounded-3xl border-2 transition-all duration-300 ${
+                                    barber === b.nombre 
+                                    ? "border-amber-400 bg-amber-400/10 scale-105" 
+                                    : "border-zinc-800 bg-zinc-900/50 grayscale hover:grayscale-0"
                                 }`}
                             >
-                                <img src={b.foto} alt={b.nombre} className="w-12 h-12 rounded-full mx-auto mb-2" />
-                                <p className="text-center text-xs font-bold text-white">{b.nombre}</p>
+                                <img src={b.foto} alt={b.nombre} className="w-12 h-12 rounded-full mx-auto mb-2 object-cover border border-zinc-700" />
+                                <p className="text-center text-[10px] font-black text-white uppercase tracking-tighter">{b.nombre}</p>
                             </div>
                         ))}
                     </div>
@@ -147,65 +156,85 @@ export default function ListDate() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-zinc-400 text-xs font-bold uppercase">Servicio</label>
-                    <select name="service" onChange={handleServiceChange} className="w-full font-bold text-white rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800 focus:border-amber-400 outline-none">
-                        <option value="">¿Qué servicio deseas?</option>
-                        {SERVICIOS_DATA.map(s => <option key={s.nombre} value={s.nombre}>{s.nombre}</option>)}
+                    <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Servicio</label>
+                    <select 
+                        name="service" 
+                        onChange={handleServiceChange} 
+                        className="w-full font-bold text-white rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800 focus:border-amber-400 outline-none transition-colors"
+                    >
+                        <option value="">Selecciona un servicio</option>
+                        {SERVICIOS_DATA.map(s => (
+                            <option key={s.nombre} value={s.nombre}>
+                                {s.nombre} — {s.duracion} min ({s.precio}€)
+                            </option>
+                        ))}
                     </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="text-zinc-400 text-xs font-bold uppercase">Precio</label>
-                        <input name="price" value={precio} readOnly className="w-full font-black text-white rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800" />
+                        <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Precio</label>
+                        <div className="w-full font-black text-amber-400 rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800 text-2xl flex items-center justify-center">
+                            {precio ? `${precio}€` : "--"}
+                        </div>
                     </div>
+
                     <div className="space-y-2">
-                       <div className="flex justify-between items-center px-1">
+                        <div className="flex justify-between items-center px-1">
                             <label className="text-zinc-400 text-xs font-bold uppercase">Horario</label>
-                            {/* AQUÍ USAMOS isLoadingAvailability PARA SOLUCIONAR EL ERROR */}
                             {isLoadingAvailability && (
-                                <span className="text-[10px] text-amber-500 animate-pulse font-bold">
-                                    CARGANDO...
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                                 </span>
                             )}
                         </div>
-                            <DatePicker selectedDate={selectedDate} onChange={(date) => setSelectedDate(date)} busySlots={busySlots} />
+
+                        <div className={`transition-all duration-500 ${(!barber || isLoadingAvailability) ? "opacity-20 pointer-events-none scale-95" : "opacity-100 scale-100"}`}>
+                            <DatePicker 
+                                key={barber} 
+                                selectedDate={selectedDate} 
+                                onChange={(date) => setSelectedDate(date)} 
+                                busySlots={busySlots}
+                            />
                         </div>
-                        <input type="hidden" name="dateList" value={selectedDate?.toISOString() || ""} />
+                        <input type="hidden" name="dateList" value={selectedDate ? getLocalISOString(selectedDate) : ""} />
                         <input type="hidden" name="duration" value={currentDuration} />
                     </div>
-                
+                </div>
 
+                {/* AQUÍ USAMOS 'isTimeValid' PARA EL MENSAJE VISUAL */}
                 {selectedDate && !isTimeValid(selectedDate) && (
-                    <p className="text-red-500 text-[10px] font-bold uppercase text-center">* Mínimo 3h de antelación</p>
+                    <p className="text-red-500 text-[10px] font-bold uppercase text-center">* Elige una hora con 3h de margen</p>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input name="client" defaultValue={clienteInfo.nombre} placeholder="Tu Nombre" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white" />
-                    <input name="phone" defaultValue={clienteInfo.telefono} placeholder="Teléfono" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white" />
+                {/* AQUÍ USAMOS 'clienteInfo' PARA LOS DEFAULT VALUES */}
+                <div className="grid grid-cols-2 gap-4">
+                    <input name="client" defaultValue={clienteInfo.nombre} placeholder="Tu Nombre" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-amber-400 outline-none" />
+                    <input name="phone" defaultValue={clienteInfo.telefono} placeholder="Teléfono" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-amber-400 outline-none" />
                 </div>
 
                 <motion.button 
-                    disabled={!isTimeValid(selectedDate) || !barber}
+                    whileTap={{ scale: 0.98 }}
+                    disabled={!isTimeValid(selectedDate) || !barber || isLoadingAvailability}
                     type="submit"
-                    className={`py-5 rounded-2xl font-black text-xl uppercase transition-all ${
+                    className={`py-5 rounded-2xl font-black text-xl uppercase tracking-widest transition-all ${
                         isTimeValid(selectedDate) && barber ? "bg-amber-400 text-black shadow-lg" : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
                     }`}
                 >
                     Confirmar Cita
                 </motion.button>
             </Form>
-
-            {/* AQUÍ SE USA setTemplate PARA QUE NO DE ERROR */}
-            <div className="mt-10 p-4 bg-zinc-900/50 rounded-2xl border border-zinc-800">
-                <h3 className="text-amber-400 text-[10px] font-black uppercase mb-2">Mensaje Automático de WhatsApp</h3>
+            
+            {/* AQUÍ USAMOS 'template' Y 'setTemplate' */}
+            <div className="mt-8 p-4 bg-zinc-900/50 rounded-3xl border border-zinc-800">
+                <p className="text-zinc-500 text-[10px] font-bold uppercase mb-2 ml-1 text-center">Mensaje de WhatsApp</p>
                 <textarea 
-                    className="w-full bg-black border border-zinc-700 rounded-xl p-3 text-xs text-zinc-400 focus:border-amber-500 outline-none"
-                    rows={2}
+                    className="w-full bg-transparent text-zinc-400 text-xs p-2 outline-none resize-none border-t border-zinc-800 pt-4"
+                    rows={3}
                     value={template}
                     onChange={(e) => setTemplate(e.target.value)}
                 />
-                <p className="text-[9px] text-zinc-600 mt-1 italic">Variables: {"{cliente}, {fecha}, {hora}"}</p>
             </div>
 
             <footer className="mt-8 text-center">
