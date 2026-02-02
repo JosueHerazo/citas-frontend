@@ -8,7 +8,7 @@ type ServiceData = {
 };
 
 const HORARIOS_BARBERIA = {
-    0: null, // Domingo: Cerrado
+    0: {inicio: 11, fin: 17 }, // Domingo: Cerrado
     1: { inicio: 10, fin: 20 }, // Lunes
     2: { inicio: 10, fin: 20 }, // Martes
     3: { inicio: 10, fin: 20 }, // Miércoles
@@ -26,7 +26,7 @@ export async function addProduct(data: ServiceData) {
             price: Number(data.price) || 0,
             dateList: data.dateList,
             client: data.client,
-            phone: Number(data.phone),
+            phone: String(data.phone).replace(/\s+/g, ''),
         });
 
         if (!result.success) {
@@ -74,10 +74,10 @@ export async function getBarberAvailability(barberName: string) {
         // IMPORTANTE: Asegúrate que tu backend escuche en /availability
         // y reciba el barbero por query string (?barber=...)
         const url = `${import.meta.env.VITE_API_URL}/api/date/availability/${barberName}`;
-        const { data } = await axios.get(url);
-        
+        const response = await axios.get(url);
         // Retornamos el array de fechas ocupadas
-        return data.data || data || []; 
+        const result =  response.data.data || response.data || []; 
+        return Array.isArray(result) ? result : [];
     } catch (error) {
         console.error("Error trayendo disponibilidad:", error);
         return [];

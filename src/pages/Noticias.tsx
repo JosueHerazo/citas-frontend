@@ -48,7 +48,7 @@ export const action = async ({ request }: { request: Request }) => {
     }
 };
 export default function Noticias() {
-  const fetcher = useFetcher();
+    const fetcher = useFetcher();
     const response = useLoaderData() as any;
     const posts = response?.data || response || [];
     
@@ -59,7 +59,6 @@ export default function Noticias() {
     return (
         <div className="h-screen w-full bg-black overflow-y-scroll snap-y snap-mandatory no-scrollbar">
             {/* Botón Flotante para Subir */}
-           {/* Cannot find name 'uploadFetcher'. */}
 
             {posts.length > 0 ? (
                 posts.map((post: any) => (

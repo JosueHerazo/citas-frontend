@@ -1,5 +1,5 @@
 import { Link, Form, type ActionFunctionArgs, redirect, useActionData, useSubmit } from "react-router-dom"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import ErrorMessaje from "../components/ErrorMessage"
 import { addProduct, getBarberAvailability } from "../services/ServiceDates"
@@ -55,14 +55,24 @@ export default function ListDate() {
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
     const [precio, setPrecio] = useState<number | string>("");
     const [barber, setBarber] = useState("");
-    const [busySlots, setBusySlots] = useState([]); // Usamos esta para el DatePicker
-    const [currentDuration, setCurrentDuration] = useState(30);
+    const [busySlots, setBusySlots] = useState<any[]>([]);    const [currentDuration, setCurrentDuration] = useState(30);
     const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
-    
     const [clienteInfo] = useState({
         nombre: localStorage.getItem("cliente_nombre") || "",
         telefono: localStorage.getItem("cliente_telefono") || ""
     });
+
+  useEffect(() => {
+    if (barber) { // 'barber' es el estado que actualizas en handleBarberSelectç
+        setIsLoadingAvailability(true);
+        getBarberAvailability(barber).then(data => {
+            // El backend devuelve { data: [ {dateList: "..."} ] }
+            const safeData = Array.isArray(data) ? data : [];
+            const dates = safeData.map((item: any) => item.dateList|| item);
+            setBusySlots(dates); // Asegúrate de actualizar busySlots que va al DatePicker
+        });
+    }
+}, [barber]);
 
     const getLocalISOString = (date: Date) => {
         const offset = date.getTimezoneOffset() * 60000;
@@ -90,9 +100,10 @@ export default function ListDate() {
         setIsLoadingAvailability(true);
         try {
             const occupied = await getBarberAvailability(barberId);
-            setBusySlots(occupied);
+            setBusySlots(occupied || []);
         } catch (err) {
             console.error("Error cargando disponibilidad", err);
+            setBusySlots([]); // Limpiar si hay error
         } finally {
             setIsLoadingAvailability(false);
         }
@@ -109,11 +120,14 @@ export default function ListDate() {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const data = Object.fromEntries(formData);
-        const whatsappUrl = `https://wa.me/${data.phone.toString().replace(/\s+/g, '')}?text=${encodeURIComponent(generarMensaje(data))}`;
-        submit(e.currentTarget);
+        // Limpiamos espacios para el link de WhatsApp
+        const cleanPhone = data.phone.toString().replace(/\s+/g, '');
+        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(generarMensaje(data))}`; 
+        submit(e.currentTarget); submit(e.currentTarget); // Esto dispara la 'action' que llama a addProduct
         window.open(whatsappUrl, '_blank');
     };
 
+    
     return (
         <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}

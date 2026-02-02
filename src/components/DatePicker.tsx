@@ -2,8 +2,7 @@
 import ReactDatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { es } from 'date-fns/locale/es';
-import { isWithinInterval } from "date-fns/isWithinInterval";
-import { addMinutes } from "date-fns/addMinutes";
+
 
 registerLocale('es', es);
 
@@ -16,19 +15,19 @@ interface DatePickerProps {
 
 export default function CustomDatePicker({ selectedDate, onChange, busySlots }: DatePickerProps) {
     
-    const filterOccupied = (time: Date) => {
-        // Si no hay slots ocupados, permitimos todo
-        if (!busySlots || busySlots.length === 0) return true;
+   const filterOccupied = (time: Date) => {
+    // Si busySlots no existe o no es array, permitimos la hora
+    if (!Array.isArray(busySlots)) return true;
 
-        return !busySlots.some((slot: any) => {
-            const start = new Date(slot.dateList);
-            const duration = slot.duration || 30; 
-            const end = addMinutes(start, duration);
-            
-            // Si la hora está en el intervalo de una cita, se bloquea
-            return isWithinInterval(time, { start, end });
-        });
-    };
+    return !busySlots.some(slot => {
+        const busyDate = new Date(slot);
+        return (
+            busyDate.getDate() === time.getDate() &&
+            busyDate.getMonth() === time.getMonth() &&
+            busyDate.getHours() === time.getHours()
+        );
+    });
+};
 // const SERVICIOS_DATA = [
 //         { nombre: "Corte", precio: 13, duracion: 30 },
 //         { nombre: "Corte con cejas", precio: 15, duracion: 40 },
