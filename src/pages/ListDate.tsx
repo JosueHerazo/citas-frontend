@@ -123,7 +123,7 @@ export default function ListDate() {
         // Limpiamos espacios para el link de WhatsApp
         const cleanPhone = data.phone.toString().replace(/\s+/g, '');
         const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(generarMensaje(data))}`; 
-        submit(e.currentTarget); submit(e.currentTarget); // Esto dispara la 'action' que llama a addProduct
+        submit(e.currentTarget); 
         window.open(whatsappUrl, '_blank');
     };
 

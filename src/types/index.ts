@@ -13,7 +13,7 @@ export const RegisterSchema = object({
     name:   string(),
     password:  string(), 
     email: pipe(string(), email()),
-    phone: number(),
+    phone: string(),
     terms: boolean()
     // menssage:string
 }) 
@@ -23,7 +23,7 @@ export const DraftDateSchema = object({
     price: number(),
     barber: string(),
     client: string(),
-    phone: number(),  // Cambia date() por any() para evitar el error de parseo
+    phone: string(),  // Cambia date() por any() para evitar el error de parseo
     dateList: string(),
          })
 

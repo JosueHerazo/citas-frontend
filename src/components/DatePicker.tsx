@@ -1,5 +1,5 @@
 // CustomDatePicker.tsx
-import ReactDatePicker, { registerLocale } from "react-datepicker";
+import ReactDatePicker, { DatePicker, registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { es } from 'date-fns/locale/es';
 
@@ -15,6 +15,17 @@ interface DatePickerProps {
 
 export default function CustomDatePicker({ selectedDate, onChange, busySlots }: DatePickerProps) {
     
+    <DatePicker
+    selected={selectedDate}
+    onChange={onChange}
+    showTimeSelect
+    filterTime={(time) => {
+        const selectedTimeString = time.toISOString();
+        // Bloquea la hora si está en la lista de busySlots
+        return !busySlots.includes(selectedTimeString);
+    }}
+    // ... otras props
+/>
    const filterOccupied = (time: Date) => {
     // Si busySlots no existe o no es array, permitimos la hora
     if (!Array.isArray(busySlots)) return true;
