@@ -46,7 +46,7 @@ const SERVICIOS_DATA = [
 ];
 
 export default function ListDate() {
-    const [ocupados, setOcupados] = useState<string[]>([]);
+    // ELIMINADA: const [ocupados, setOcupados] = useState([]); <--- Esto causaba el error
     const submit = useSubmit();
     const error = useActionData() as string;
     const [template, setTemplate] = useState(
@@ -55,7 +55,7 @@ export default function ListDate() {
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
     const [precio, setPrecio] = useState<number | string>("");
     const [barber, setBarber] = useState("");
-    const [busySlots, setBusySlots] = useState([]);
+    const [busySlots, setBusySlots] = useState([]); // Usamos esta para el DatePicker
     const [currentDuration, setCurrentDuration] = useState(30);
     const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
     
@@ -91,11 +91,11 @@ export default function ListDate() {
         try {
             const occupied = await getBarberAvailability(barberId);
             setBusySlots(occupied);
+        } catch (err) {
+            console.error("Error cargando disponibilidad", err);
         } finally {
             setIsLoadingAvailability(false);
         }
-        const fechasOcupadas = await getBarberAvailability(barberId);
-    setOcupados(fechasOcupadas);
     };
 
     const generarMensaje = (datos: any) => {
@@ -109,13 +109,10 @@ export default function ListDate() {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const data = Object.fromEntries(formData);
-        
         const whatsappUrl = `https://wa.me/${data.phone.toString().replace(/\s+/g, '')}?text=${encodeURIComponent(generarMensaje(data))}`;
-        
         submit(e.currentTarget);
         window.open(whatsappUrl, '_blank');
     };
-    
 
     return (
         <motion.div 
@@ -132,11 +129,9 @@ export default function ListDate() {
                 </p>
             </div>
 
-            {/* AQUÍ USAMOS 'error' */}
             {error && <ErrorMessaje>{error}</ErrorMessaje>}
 
             <Form method="POST" onSubmit={handleSubmit} className="flex flex-col gap-6">
-                
                 <div className="space-y-3">
                     <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Especialista</label>
                     <div className="flex gap-4">
@@ -150,9 +145,7 @@ export default function ListDate() {
                                     : "border-zinc-800 bg-zinc-900/50 grayscale hover:grayscale-0"
                                 }`}
                             >
-                                <div onClick={() => handleBarberSelect(b.id)}>
-                                    <img src={b.foto} />
-                                    </div>
+                                <img src={b.foto} className="rounded-full w-full aspect-square object-cover" alt={b.nombre} />
                             </div>
                         ))}
                     </div>
@@ -187,7 +180,7 @@ export default function ListDate() {
                         <div className="flex justify-between items-center px-1">
                             <label className="text-zinc-400 text-xs font-bold uppercase">Horario</label>
                             {isLoadingAvailability && (
-                                <span className="relative flex h-2 w-2">
+                                <span className="flex h-2 w-2">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                                     <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
                                 </span>
@@ -207,15 +200,13 @@ export default function ListDate() {
                     </div>
                 </div>
 
-                {/* AQUÍ USAMOS 'isTimeValid' PARA EL MENSAJE VISUAL */}
                 {selectedDate && !isTimeValid(selectedDate) && (
                     <p className="text-red-500 text-[10px] font-bold uppercase text-center">* Elige una hora con 3h de margen</p>
                 )}
 
-                {/* AQUÍ USAMOS 'clienteInfo' PARA LOS DEFAULT VALUES */}
                 <div className="grid grid-cols-2 gap-4">
-                    <input name="client" defaultValue={clienteInfo.nombre} placeholder="Tu Nombre" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-amber-400 outline-none" />
-                    <input name="phone" defaultValue={clienteInfo.telefono} placeholder="Teléfono" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white placeholder:text-zinc-600 focus:border-amber-400 outline-none" />
+                    <input name="client" defaultValue={clienteInfo.nombre} placeholder="Tu Nombre" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white focus:border-amber-400 outline-none" />
+                    <input name="phone" defaultValue={clienteInfo.telefono} placeholder="Teléfono" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white focus:border-amber-400 outline-none" />
                 </div>
 
                 <motion.button 
@@ -229,12 +220,10 @@ export default function ListDate() {
                     Confirmar Cita
                 </motion.button>
             </Form>
-            
-            {/* AQUÍ USAMOS 'template' Y 'setTemplate' */}
+
             <div className="mt-8 p-4 bg-zinc-900/50 rounded-3xl border border-zinc-800">
-                <p className="text-zinc-500 text-[10px] font-bold uppercase mb-2 ml-1 text-center">Mensaje de WhatsApp</p>
                 <textarea 
-                    className="w-full bg-transparent text-zinc-400 text-xs p-2 outline-none resize-none border-t border-zinc-800 pt-4"
+                    className="w-full bg-transparent text-zinc-400 text-xs p-2 outline-none resize-none"
                     rows={3}
                     value={template}
                     onChange={(e) => setTemplate(e.target.value)}
