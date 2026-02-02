@@ -1,7 +1,7 @@
 // pages/Noticias.tsx
 import { useState } from 'react';
 import { useLoaderData, Form } from 'react-router-dom';
-import { Heart, MessageCircle, PlusCircle, X, Send } from 'lucide-react';
+import { Heart, MessageCircle, X, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import VideoPost from '../components/VideoPost';
 // import { NewsPost } from '../types'; // Asegúrate de tener esta interfaz o usa 'any' temporalmente
@@ -27,15 +27,15 @@ export const action = async ({ request }: { request: Request }) => {
 
     try {
         if (intent === "comment") {
-            const postId = formData.get("postId");
-            const text = formData.get("text");
+            // const postId = formData.get("postId");
+            // const text = formData.get("text");
             // Aquí DEBES llamar a tu API real:
             // await addComment({ postId, text, userName: 'Usuario' }); 
             return { success: true };
         }
 
         if (intent === "like") {
-            const postId = formData.get("postId");
+            // const postId = formData.get("postId");
             // await toggleLike(postId);
             return { success: true };
         }
