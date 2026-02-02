@@ -73,7 +73,7 @@ export async function getBarberAvailability(barberName: string) {
     try {
         // IMPORTANTE: Asegúrate que tu backend escuche en /availability
         // y reciba el barbero por query string (?barber=...)
-        const url = `${import.meta.env.VITE_API_URL}/api/date/availability`;
+        const url = `${import.meta.env.VITE_API_URL}/api/date/availability/${barberName}`;
         const { data } = await axios.get(url, { 
             params: { barber: barberName } 
         });
