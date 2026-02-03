@@ -23,56 +23,69 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 const BARBEROS_DATA = [
-    { id: "Josue", nombre: "Josue", foto: josuePerfil },
-    { id: "Vato", nombre: "Vato", foto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Vato" }
+    { id: "Josue", barber: "Josue", foto: josuePerfil },
+    { id: "Vato", barber: "Vato", foto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Vato" }
 ];
 
 const SERVICIOS_DATA = [
-    { nombre: "Corte", precio: 13, duracion: 30 },
-    { nombre: "Corte con cejas", precio: 15, duracion: 40 },
-    { nombre: "Corte con barba", precio: 18, duracion: 50 },
-    { nombre: "Corte Vip", precio: 25, duracion: 70 },
-    { nombre: "Barba", precio: 8, duracion: 15 },
-    { nombre: "Barba VIP", precio: 11, duracion: 25 },
-    { nombre: "Cejas", precio: 5, duracion: 10},
-    { nombre: "Mechas", precio: 30, duracion: 60 },
-    { nombre: "Tinte", precio: 30, duracion: 60 },
-    { nombre: "Trenzas", precio: 20, duracion: 45 },
-    { nombre: "Mask Carbon", precio: 3, duracion: 10 },
-    { nombre: "Limpieza Facial", precio: 15, duracion: 25 },
-    { nombre: "Diseño", precio: 3, duracion: 10 },
-    { nombre: "Lavado de Cabello", precio: 2, duracion: 10},
-    { nombre: "Otros", precio: 0, duracion: 0 },
+    { service: "Corte", price: 13, duration: 30 },
+    { service: "Corte con cejas", price: 15, duration: 40 },
+    { service: "Corte con barba", price: 18, duration: 50 },
+    { service: "Corte Vip", price: 25, duration: 70 },
+    { service: "Barba", price: 8, duration: 15 },
+    { service: "Barba VIP", price: 11, duration: 25 },
+    { service: "Cejas", price: 5, duration: 10},
+    { service: "Mechas", price: 30, duration: 60 },
+    { service: "Tinte", price: 30, duration: 60 },
+    { service: "Trenzas", price: 20, duration: 45 },
+    { service: "Mask Carbon", price: 3, duration: 10 },
+    { service: "Limpieza Facial", price: 15, duration: 25 },
+    { service: "Diseño", price: 3, duration: 10 },
+    { service: "Lavado de Cabello", price: 2, duration: 10},
+    { service: "Otros", price: 0, duration: 0 },
 ];
 
 export default function ListDate() {
-    // ELIMINADA: const [ocupados, setOcupados] = useState([]); <--- Esto causaba el error
     const submit = useSubmit();
     const error = useActionData() as string;
     const [template, setTemplate] = useState(
         "Hola {cliente}, tu cita en LatinosVip ha sido confirmada para el día {fecha} a las {hora}. Recuerda que las citas se reservan con 3h de antelación. ¡Te esperamos!"
     );
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-    const [precio, setPrecio] = useState<number | string>("");
+    const [price, setPrice] = useState<number | string>(""); // Corregido: setPrice
     const [barber, setBarber] = useState("");
-    const [busySlots, setBusySlots] = useState<any[]>([]);    const [currentDuration, setCurrentDuration] = useState(30);
+    const [busySlots, setBusySlots] = useState<any[]>([]);
+    const [currentDuration, setCurrentDuration] = useState(30);
     const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
-    const [clienteInfo] = useState({
-        nombre: localStorage.getItem("cliente_nombre") || "",
-        telefono: localStorage.getItem("cliente_telefono") || ""
+    
+    // Corregido: 'name' en lugar de 'service' para evitar confusión con el servicio de barbería
+    const [clientInfo] = useState({
+        name: localStorage.getItem("cliente_nombre") || "",
+        phone: localStorage.getItem("cliente_telefono") || ""
     });
 
-  useEffect(() => {
-    if (barber) { // 'barber' es el estado que actualizas en handleBarberSelectç
-        setIsLoadingAvailability(true);
-        getBarberAvailability(barber).then(data => {
-            // El backend devuelve { data: [ {dateList: "..."} ] }
-            const safeData = Array.isArray(data) ? data : [];
-            const dates = safeData.map((item: any) => item.dateList|| item);
-            setBusySlots(dates); // Asegúrate de actualizar busySlots que va al DatePicker
-        });
-    }
-}, [barber]);
+    useEffect(() => {
+        if (barber) {
+            setIsLoadingAvailability(true);
+            getBarberAvailability(barber).then(data => {
+                const safeData = Array.isArray(data) ? data : [];
+                const dates = safeData.map((item: any) => item.dateList || item);
+                setBusySlots(dates);
+                setIsLoadingAvailability(false);
+            });
+        }
+    }, [barber]);
+
+    useEffect(() => {
+        const savedDate = localStorage.getItem("temp_date");
+        const savedBarber = localStorage.getItem("temp_barber");
+        if (savedDate && savedBarber) {
+            setSelectedDate(new Date(savedDate));
+            setBarber(savedBarber);
+            localStorage.removeItem("temp_date");
+            localStorage.removeItem("temp_barber");
+        }
+    }, []);
 
     const getLocalISOString = (date: Date) => {
         const offset = date.getTimezoneOffset() * 60000;
@@ -88,47 +101,34 @@ export default function ListDate() {
 
     const handleServiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const serviceName = e.target.value;
-        const info = SERVICIOS_DATA.find(s => s.nombre === serviceName);
+        const info = SERVICIOS_DATA.find(s => s.service === serviceName);
         if (info) {
-            setPrecio(info.precio);
-            setCurrentDuration(info.duracion);
+            setPrice(info.price);
+            setCurrentDuration(info.duration);
         }
     };
 
-    const handleBarberSelect = async (barberId: string) => {
+    const handleBarberSelect = (barberId: string) => {
         setBarber(barberId);
-        setIsLoadingAvailability(true);
-        try {
-            const occupied = await getBarberAvailability(barberId);
-            setBusySlots(occupied || []);
-        } catch (err) {
-            console.error("Error cargando disponibilidad", err);
-            setBusySlots([]); // Limpiar si hay error
-        } finally {
-            setIsLoadingAvailability(false);
-        }
     };
 
-    const generarMensaje = (datos: any) => {
-        const fechaObj = new Date(datos.dateList);
-        const fecha = fechaObj.toLocaleDateString();
-        const hora = fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        return template.replace("{cliente}", datos.client).replace("{fecha}", fecha).replace("{hora}", hora);
+    const generateMessage = (data: any) => {
+        const dateObj = new Date(data.dateList);
+        const dateStr = dateObj.toLocaleDateString();
+        const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return template.replace("{cliente}", data.client).replace("{fecha}", dateStr).replace("{hora}", timeStr);
     };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const data = Object.fromEntries(formData);
-        // Limpiamos espacios para el link de WhatsApp
         const cleanPhone = data.phone.toString().replace(/\s+/g, '');
-        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(generarMensaje(data))}`; 
+        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(generateMessage(data))}`; 
         submit(e.currentTarget); 
         window.open(whatsappUrl, '_blank');
     };
 
-   
-    
     return (
         <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -147,77 +147,57 @@ export default function ListDate() {
             {error && <ErrorMessaje>{error}</ErrorMessaje>}
 
             <Form method="POST" onSubmit={handleSubmit} className="flex flex-col gap-6">
+                {/* Especialista */}
                 <div className="space-y-3">
                     <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Especialista</label>
                     <div className="flex gap-4">
                         {BARBEROS_DATA.map((b) => (
                             <div
                                 key={b.id}
-                                onClick={() => handleBarberSelect(b.nombre)}
+                                onClick={() => handleBarberSelect(b.barber)}
                                 className={`flex-1 cursor-pointer p-4 rounded-3xl border-2 transition-all duration-300 ${
-                                    barber === b.nombre 
+                                    barber === b.barber 
                                     ? "border-amber-400 bg-amber-400/10 scale-105" 
                                     : "border-zinc-800 bg-zinc-900/50 grayscale hover:grayscale-0"
                                 }`}
                             >
-                                <img src={b.foto} className="rounded-full w-full aspect-square object-cover" alt={b.nombre} />
-                                {barber && (
-                                <motion.div 
-                                    initial={{ opacity: 0, y: -10 }} 
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="mt-2 text-center"
-                                >
-                                    <Link 
-                                        to={`/barberos/disponibles/${barber}`} 
-                                        className="inline-flex items-center gap-2 text-amber-500 text-[10px] font-black uppercase tracking-widest hover:text-amber-400 transition-colors"
-                                    >
-                                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
-                                        Ver disponibilidad completa de {barber}
-                                    </Link>
-                                </motion.div>
-                            )}
+                                <img src={b.foto} className="rounded-full w-full aspect-square object-cover" alt={b.barber} />
+                                {barber === b.barber && (
+                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2 text-center">
+                                        <Link to={`/barberos/disponibles/${barber}`} className="text-amber-500 text-[10px] font-black uppercase tracking-widest">
+                                            Ver disponibilidad
+                                        </Link>
+                                    </motion.div>
+                                )}
                             </div>
                         ))}
                     </div>
                     <input type="hidden" name="barber" value={barber} />
                 </div>
 
+                {/* Servicio */}
                 <div className="space-y-2">
                     <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Servicio</label>
-                    <select 
-                        name="service" 
-                        onChange={handleServiceChange} 
-                        className="w-full font-bold text-white rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800 focus:border-amber-400 outline-none transition-colors"
-                    >
+                    <select name="service" onChange={handleServiceChange} className="w-full font-bold text-white rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800 focus:border-amber-400 outline-none">
                         <option value="">Selecciona un servicio</option>
                         {SERVICIOS_DATA.map(s => (
-                            <option key={s.nombre} value={s.nombre}>
-                                {s.nombre} — {s.duracion} min ({s.precio}€)
-                            </option>
+                            <option key={s.service} value={s.service}>{s.service} — {s.duration} min ({s.price}€)</option>
                         ))}
                     </select>
                 </div>
 
+                {/* Precio y Horario */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Precio</label>
                         <div className="w-full font-black text-amber-400 rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800 text-2xl flex items-center justify-center">
-                            {precio ? `${precio}€` : "--"}
+                            {price ? `${price}€` : "--"}
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <div className="flex justify-between items-center px-1">
-                            <label className="text-zinc-400 text-xs font-bold uppercase">Horario</label>
-                            {isLoadingAvailability && (
-                                <span className="flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                                </span>
-                            )}
-                        </div>
-
-                        <div className={`transition-all duration-500 ${(!barber || isLoadingAvailability) ? "opacity-20 pointer-events-none scale-95" : "opacity-100 scale-100"}`}>
+                        <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Horario</label>
+                        <div className={`${(!barber || isLoadingAvailability) ? "opacity-20 pointer-events-none" : "opacity-100"}`}>
                             <DatePicker 
                                 key={barber} 
                                 selectedDate={selectedDate} 
@@ -230,35 +210,23 @@ export default function ListDate() {
                     </div>
                 </div>
 
-                {selectedDate && !isTimeValid(selectedDate) && (
-                    <p className="text-red-500 text-[10px] font-bold uppercase text-center">* Elige una hora con 3h de margen</p>
-                )}
-
+                {/* Datos Cliente */}
                 <div className="grid grid-cols-2 gap-4">
-                    <input name="client" defaultValue={clienteInfo.nombre} placeholder="Tu Nombre" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white focus:border-amber-400 outline-none" />
-                    <input name="phone" defaultValue={clienteInfo.telefono} placeholder="Teléfono" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white focus:border-amber-400 outline-none" />
+                    <input name="client" defaultValue={clientInfo.name} placeholder="Tu Nombre" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white" />
+                    <input name="phone" defaultValue={clientInfo.phone} placeholder="Teléfono" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white" />
                 </div>
 
                 <motion.button 
                     whileTap={{ scale: 0.98 }}
-                    disabled={!isTimeValid(selectedDate) || !barber || isLoadingAvailability}
+                    disabled={!isTimeValid(selectedDate) || !barber}
                     type="submit"
-                    className={`py-5 rounded-2xl font-black text-xl uppercase tracking-widest transition-all ${
-                        isTimeValid(selectedDate) && barber ? "bg-amber-400 text-black shadow-lg" : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                    className={`py-5 rounded-2xl font-black text-xl uppercase tracking-widest ${
+                        isTimeValid(selectedDate) && barber ? "bg-amber-400 text-black shadow-lg" : "bg-zinc-800 text-zinc-500"
                     }`}
                 >
                     Confirmar Cita
                 </motion.button>
             </Form>
-
-            <div className="mt-8 p-4 bg-zinc-900/50 rounded-3xl border border-zinc-800">
-                <textarea 
-                    className="w-full bg-transparent text-zinc-400 text-xs p-2 outline-none resize-none"
-                    rows={3}
-                    value={template}
-                    onChange={(e) => setTemplate(e.target.value)}
-                />
-            </div>
 
             <footer className="mt-8 text-center">
                 <Link className="text-zinc-600 text-sm font-bold hover:text-amber-400" to="/">← INICIO</Link>

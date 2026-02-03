@@ -25,7 +25,7 @@ export const DraftDateSchema = object({
     client: string(),
     phone: string(),  // Cambia date() por any() para evitar el error de parseo
     dateList: string(),
-    duration: any()// <-- AÑADE ESTO para que Valibot no rechace el formulario
+    duration: number()// <-- AÑADE ESTO para que Valibot no rechace el formulario
          })
 
  export const WeeklyClosingSchema = object({

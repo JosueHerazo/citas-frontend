@@ -26,12 +26,12 @@ export async function addProduct(data: ServiceData) {
             price: Number(data.price) || 0,
             dateList: data.dateList,
             client: data.client,
-            phone: String(data.phone)
+            phone: String(data.phone).trim(),
+            duration: Number(data.duration)
         });
 
         if (!result.success) {
-            console.error("Errores de validación Valibot:", result.issues);
-            throw new Error("Datos del formulario inválidos");
+console.table(result.issues.map(i => ({ campo: i.path?.[0].key, mensaje: i.message })));            throw new Error("Datos del formulario inválidos");
         }
 
         const { output } = result;
@@ -74,9 +74,15 @@ export async function getBarberAvailability(barber: string) {
         // IMPORTANTE: Asegúrate que tu backend escuche en /availability
         // y reciba el barbero por query string (?barber=...)
         const url = `${import.meta.env.VITE_API_URL}/api/date/availability/${encodeURIComponent(barber)}`
+        console.log(url);
+        
         const response = await axios.get(url);
+        console.log(response);
+        
         // Retornamos el array de fechas ocupadas
-        const result =  response.data.data || response.data || []; 
+        const result =  response.data.data || []; 
+        console.log(result);
+        
         return Array.isArray(result) ? result : [];
     } catch (error) {
         console.error("Error trayendo disponibilidad:", error);

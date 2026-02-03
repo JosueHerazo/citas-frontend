@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion"; // <-- 1. IMPORTACIÓN AGREGADA
+import { motion } from "framer-motion";
 import { getBarberAvailability } from "../services/ServiceDates";
 
 interface DatePickerProps {
@@ -10,125 +10,129 @@ interface DatePickerProps {
 }
 
 export default function CustomDatePicker({ selectedDate, onChange, busySlots: propSlots }: DatePickerProps) {
-    const navigate = useNavigate(); // <-- 2. MOVIDO AQUÍ DENTRO
+    const navigate = useNavigate();
     const { barber: urlBarber } = useParams();
     const barberName = urlBarber || ""; 
     const [internalSlots, setInternalSlots] = useState<any[]>([]);
     const [currentDay, setCurrentDay] = useState<Date>(new Date());
 
-    const handleConfirmBooking = () => {
-        if (selectedDate) {
-            localStorage.setItem("temp_date", selectedDate.toISOString());
-            localStorage.setItem("temp_barber", urlBarber || "");
-            navigate("/"); 
-        }
-    };
-
+    // 1. Cargar disponibilidad desde el backend
     useEffect(() => {
         if (barberName && !propSlots) {
-            getBarberAvailability(barberName).then(setInternalSlots);
+            getBarberAvailability(barberName).then(data => {
+                setInternalSlots(data);
+            });
         }
     }, [barberName, propSlots]);
 
-    const finalSlots = propSlots || internalSlots;
+    const finalSlots = Array.isArray(propSlots || internalSlots) ? (propSlots || internalSlots) : [];
 
+    // 2. Función para generar horarios (Faltaba definirla)
     const getHoursForDay = (date: Date) => {
         const day = date.getDay();
         const hours: string[] = [];
         let start = 10;
         let end = 20;
 
-        if (day === 0) { 
-            start = 11;
-            end = 17;
-        } else if (day >= 4 && day <= 6) { 
-            start = 10;
-            end = 21;
-        } else { 
-            start = 10;
-            end = 20;
+        if (day === 0) { // Domingo
+            start = 11; end = 17;
+        } else if (day >= 4 && day <= 6) { // Jueves a Sábado
+            start = 10; end = 21;
         }
 
         for (let i = start; i < end; i++) {
             hours.push(`${i}:00`, `${i}:30`);
         }
+        // Añadir la última hora de cierre si no es domingo
         if (day !== 0) hours.push(`${end}:00`); 
         return hours;
     };
 
+    // 3. Lógica de comparación
+    const checkIsBusy = (horaStr: string) => {
+        const [h, m] = horaStr.split(':').map(Number);
+        return finalSlots.some(slot => {
+            const dateSlot = new Date(slot);
+            return (
+                dateSlot.getDate() === currentDay.getDate() &&
+                dateSlot.getMonth() === currentDay.getMonth() &&
+                dateSlot.getFullYear() === currentDay.getFullYear() &&
+                dateSlot.getHours() === h &&
+                dateSlot.getMinutes() === m
+            );
+        });
+    };
+
+    const checkIsSelected = (horaStr: string) => {
+        if (!selectedDate) return false;
+        const [h, m] = horaStr.split(':').map(Number);
+        return (
+            selectedDate.getDate() === currentDay.getDate() &&
+            selectedDate.getMonth() === currentDay.getMonth() &&
+            selectedDate.getHours() === h &&
+            selectedDate.getMinutes() === m
+        );
+    };
+
     const handleHourSelect = (hora: string) => {
-        const [h, m] = hora.split(':');
+        const [h, m] = hora.split(':').map(Number);
         const nuevaFecha = new Date(currentDay);
-        nuevaFecha.setHours(parseInt(h), parseInt(m), 0, 0);
+        nuevaFecha.setHours(h, m, 0, 0);
         if (onChange) onChange(nuevaFecha);
+    };
+
+    // 4. Acción de Confirmación (Uso de navigate)
+    const handleConfirmBooking = () => {
+        if (selectedDate) {
+            localStorage.setItem("temp_date", selectedDate.toISOString());
+            localStorage.setItem("temp_barber", barberName);
+            navigate("/"); // Redirige al home o formulario principal
+        }
     };
 
     return (
         <div className="p-4 bg-zinc-950 rounded-[2rem] border border-zinc-800 shadow-2xl">
             
-            {/* BOTÓN DE RESERVA RÁPIDA */}
-            {urlBarber && selectedDate && (
+            {/* BOTÓN DE CONFIRMACIÓN */}
+            {selectedDate && (
                 <motion.button
-                    initial={{ opacity: 0, y: -20 }}
+                    initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    whileTap={{ scale: 0.95 }}
                     onClick={handleConfirmBooking}
-                    className="w-full mb-6 py-4 bg-amber-400 text-black font-black uppercase rounded-2xl shadow-[0_10px_20px_rgba(251,191,36,0.3)] hover:bg-amber-500 transition-all"
+                    className="w-full mb-6 py-4 bg-amber-400 text-black font-black uppercase rounded-2xl shadow-lg hover:bg-amber-500 transition-all"
                 >
                     Confirmar: {selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </motion.button>
             )}
 
             {/* SELECTOR DE DÍA */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-6 px-2">
                 <button 
-                    type="button" 
+                    type="button"
                     onClick={() => { const d = new Date(currentDay); d.setDate(d.getDate() - 1); setCurrentDay(d); }}
-                    className="p-2 text-amber-500 font-bold"
+                    className="p-2 text-amber-500 font-black text-xl"
                 >
                     {"<"}
                 </button>
                 <div className="text-center">
-                    <p className="text-white font-bold capitalize text-sm">
-                        {currentDay.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}
+                    <p className="text-white font-bold capitalize">
+                        {currentDay.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
                     </p>
                 </div>
                 <button 
-                    type="button" 
+                    type="button"
                     onClick={() => { const d = new Date(currentDay); d.setDate(d.getDate() + 1); setCurrentDay(d); }}
-                    className="p-2 text-amber-500 font-bold"
+                    className="p-2 text-amber-500 font-black text-xl"
                 >
                     {">"}
                 </button>
             </div>
 
-            {/* LEYENDA */}
-            <div className="flex justify-center gap-4 mb-4">
-                <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-zinc-800"></div>
-                    <span className="text-[9px] text-zinc-500 font-bold uppercase">Libre</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-amber-400"></div>
-                    <span className="text-[9px] text-zinc-500 font-bold uppercase">Tu selección</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-zinc-900 border border-zinc-800"></div>
-                    <span className="text-[9px] text-zinc-700 font-bold uppercase">Ocupado</span>
-                </div>
-            </div>
-
             {/* GRID DE HORAS */}
             <div className="grid grid-cols-3 gap-2">
                 {getHoursForDay(currentDay).map((hora) => {
-                    const isBusy = finalSlots.some(slot => {
-                        const d = new Date(slot);
-                        return d.toDateString() === currentDay.toDateString() && 
-                               d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12: false}) === (hora.length === 4 ? `0${hora}` : hora);
-                    });
-
-                    const isSelected = selectedDate?.toDateString() === currentDay.toDateString() && 
-                                      selectedDate?.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', hour12: false}) === (hora.length === 4 ? `0${hora}` : hora);
+                    const isBusy = checkIsBusy(hora);
+                    const isSelected = checkIsSelected(hora);
 
                     return (
                         <button
@@ -148,23 +152,6 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
                         </button>
                     );
                 })}
-            </div>
-
-            {/* HORARIOS BARBERÍA */}
-            <div className="mt-6 pt-6 border-t border-zinc-800 space-y-2">
-                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-2">Horarios de la Barbería</p>
-                <div className={`flex justify-between items-center p-2 rounded-lg ${currentDay.getDay() >= 1 && currentDay.getDay() <= 3 ? 'bg-amber-400/10' : ''}`}>
-                    <span className="text-xs text-zinc-400">Lun - Mié</span>
-                    <span className={`text-xs ${currentDay.getDay() >= 1 && currentDay.getDay() <= 3 ? 'text-amber-400 font-bold' : 'text-zinc-300'}`}>10:00 a 20:00</span>
-                </div>
-                <div className={`flex justify-between items-center p-2 rounded-lg ${currentDay.getDay() >= 4 && currentDay.getDay() <= 6 ? 'bg-amber-400/10' : ''}`}>
-                    <span className="text-xs text-zinc-400">Jue - Sáb</span>
-                    <span className={`text-xs ${currentDay.getDay() >= 4 && currentDay.getDay() <= 6 ? 'text-amber-400 font-bold' : 'text-zinc-300'}`}>10:00 a 21:00</span>
-                </div>
-                <div className={`flex justify-between items-center p-2 rounded-lg ${currentDay.getDay() === 0 ? 'bg-amber-400/10' : ''}`}>
-                    <span className="text-xs text-zinc-400">Domingos</span>
-                    <span className={`text-xs ${currentDay.getDay() === 0 ? 'text-amber-500 font-bold' : 'text-zinc-300'}`}>11:00 a 17:00</span>
-                </div>
             </div>
         </div>
     );
