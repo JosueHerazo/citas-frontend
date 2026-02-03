@@ -1,4 +1,4 @@
-import { safeParse } from "valibot";
+import { safeParse,  } from "valibot";
 import axios from "axios";
 import { DraftDateSchema } from "../types";
 
@@ -26,7 +26,7 @@ export async function addProduct(data: ServiceData) {
             price: Number(data.price) || 0,
             dateList: data.dateList,
             client: data.client,
-            phone: Number(data.phone)
+            phone: String(data.phone)
         });
 
         if (!result.success) {
