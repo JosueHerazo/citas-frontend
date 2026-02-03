@@ -68,6 +68,7 @@ export const router = createBrowserRouter([
             action: NewsAction,
             loader: NewsLoader
           },
+         
       
       // Autenticación
       {
