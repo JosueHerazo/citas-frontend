@@ -26,7 +26,7 @@ export async function addProduct(data: ServiceData) {
             price: Number(data.price) || 0,
             dateList: data.dateList,
             client: data.client,
-            phone: data.phone
+            phone: Number(data.phone)
         });
 
         if (!result.success) {
@@ -68,12 +68,12 @@ export async function addProduct(data: ServiceData) {
     }
 }
 
-export async function getBarberAvailability(barberName: string) {
-    if (!barberName) return [];
+export async function getBarberAvailability(barber: string) {
+    if (!barber) return [];
     try {
         // IMPORTANTE: Asegúrate que tu backend escuche en /availability
         // y reciba el barbero por query string (?barber=...)
-        const url = `${import.meta.env.VITE_API_URL}/api/date/availability/${barberName}`;
+        const url = `${import.meta.env.VITE_API_URL}/api/date/availability/${encodeURIComponent(barber)}`
         const response = await axios.get(url);
         // Retornamos el array de fechas ocupadas
         const result =  response.data.data || response.data || []; 
