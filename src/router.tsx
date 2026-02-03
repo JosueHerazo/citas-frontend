@@ -12,6 +12,7 @@ import Inicio from "./pages/Inicio";
 import Barberos from "./pages/Barberos";
 import Trabajos from "./pages/Trabajos";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import DatePicker from "./components/CustomDatePicker" // Tu componente de calendario
 // import { action as adminDashboardAction } from "./pages/admin/AdminDashboard";
 // import { action as adminCierresAction } from "./pages/admin/Cierres";
 // import Cierres from "./pages/admin/Cierres";  
@@ -68,6 +69,11 @@ export const router = createBrowserRouter([
             action: NewsAction,
             loader: NewsLoader
           },
+          {
+            path: "barberos/disponibles/:barber", 
+            element: <DatePicker/>,
+            // Opcional: puedes envolverlo en un Layout si lo necesitas
+         },
          
       
       // Autenticación

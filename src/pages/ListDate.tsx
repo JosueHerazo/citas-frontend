@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import ErrorMessaje from "../components/ErrorMessage"
 import { addProduct, getBarberAvailability } from "../services/ServiceDates"
-import DatePicker from "../components/DatePicker"
+import DatePicker from "../components/CustomDatePicker"
 import josuePerfil from "../assets/josuePerfil.jpeg"
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -127,6 +127,7 @@ export default function ListDate() {
         window.open(whatsappUrl, '_blank');
     };
 
+   
     
     return (
         <motion.div 
@@ -160,6 +161,21 @@ export default function ListDate() {
                                 }`}
                             >
                                 <img src={b.foto} className="rounded-full w-full aspect-square object-cover" alt={b.nombre} />
+                                {barber && (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: -10 }} 
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="mt-2 text-center"
+                                >
+                                    <Link 
+                                        to={`/barberos/disponibles/${barber}`} 
+                                        className="inline-flex items-center gap-2 text-amber-500 text-[10px] font-black uppercase tracking-widest hover:text-amber-400 transition-colors"
+                                    >
+                                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
+                                        Ver disponibilidad completa de {barber}
+                                    </Link>
+                                </motion.div>
+                            )}
                             </div>
                         ))}
                     </div>
