@@ -5,6 +5,7 @@ import ErrorMessaje from "../components/ErrorMessage"
 import { addProduct, getBarberAvailability } from "../services/ServiceDates"
 import DatePicker from "../components/CustomDatePicker"
 import josuePerfil from "../assets/josuePerfil.jpeg"
+import vatoPerfil from "../assets/vatoPerfil.jpeg"
 
 export async function action({ request }: ActionFunctionArgs) {
     const formData = await request.formData()
@@ -24,7 +25,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 const BARBEROS_DATA = [
     { id: "Josue", barber: "Josue", foto: josuePerfil },
-    { id: "Vato", barber: "Vato", foto: "https://api.dicebear.com/7.x/avataaars/svg?seed=Vato" }
+    { id: "Vato", barber: "Vato", foto: vatoPerfil }
 ];
 
 const SERVICIOS_DATA = [
