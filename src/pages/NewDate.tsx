@@ -50,7 +50,7 @@ export default function ListDate() {
     const submit = useSubmit();
     const error = useActionData() as string;
     const [template] = useState(
-        "Hola {cliente}, tu cita en LatinosVip ha sido confirmada para el día {fecha} a las {hora}. Recuerda que las citas se reservan con 3h de antelación. ¡Te esperamos!"
+        "Hola {cliente}, tu cita en LatinosVip ha sido confirmada para el día {fecha} a las {hora}. Recuerda que las citas se reservan con 3h de antelación. ¡Te esperamos! recuerda reservar tu próxima cita https://cita-corte.netlify.app/" 
     );
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
     const [price, setPrice] = useState<number | string>(""); // Corregido: setPrice
