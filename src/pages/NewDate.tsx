@@ -48,7 +48,7 @@ const SERVICIOS_DATA = [
 export default function ListDate() {
     const submit = useSubmit();
     const error = useActionData() as string;
-    const [template, setTemplate] = useState(
+    const [template] = useState(
         "Hola {cliente}, tu cita en LatinosVip ha sido confirmada para el día {fecha} a las {hora}. Recuerda que las citas se reservan con 3h de antelación. ¡Te esperamos!"
     );
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
@@ -113,11 +113,18 @@ export default function ListDate() {
     };
 
     const generateMessage = (data: any) => {
-        const dateObj = new Date(data.dateList);
-        const dateStr = dateObj.toLocaleDateString();
-        const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        return template.replace("{cliente}", data.client).replace("{fecha}", dateStr).replace("{hora}", timeStr);
-    };
+    const dateObj = new Date(data.dateList);
+    // Usar 'es-ES' para asegurar el formato y la zona horaria del navegador
+    const dateStr = dateObj.toLocaleDateString('es-ES');
+    const timeStr = dateObj.toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false // Esto evita confusiones entre AM/PM
+    });
+    return template.replace("{cliente}", data.client)
+                   .replace("{fecha}", dateStr)
+                   .replace("{hora}", timeStr);
+};
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
