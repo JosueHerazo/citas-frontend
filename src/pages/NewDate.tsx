@@ -89,7 +89,7 @@ export default function ListDate() {
 
     const getLocalISOString = (date: Date) => {
         const offset = date.getTimezoneOffset() * 60000;
-        return new Date(date.getTime() - offset).toISOString();
+        return new Date(date.getTime() - offset).toLocaleString();
     };
 
     const isTimeValid = (date: Date | null) => {
