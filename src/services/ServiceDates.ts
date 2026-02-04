@@ -23,15 +23,15 @@ export async function addProduct(data: ServiceData) {
         const result = safeParse(DraftDateSchema, {
             barber: data.barber,
             service: data.service,
-            price: Number(data.price) || 0,
+            price: Number(data.price),
             dateList: data.dateList,
             client: data.client,
             phone: String(data.phone).trim(),
             duration: Number(data.duration)
         });
-
+        
         if (!result.success) {
-console.table(result.issues.map(i => ({ campo: i.path?.[0].key, mensaje: i.message })));            throw new Error("Datos del formulario inválidos");
+        console.table(result.issues.map(i => ({ campo: i.path?.[0].key, mensaje: i.message })));            throw new Error("Datos del formulario inválidos");
         }
 
         const { output } = result;
@@ -53,9 +53,9 @@ console.table(result.issues.map(i => ({ campo: i.path?.[0].key, mensaje: i.messa
         if (selectedDate.getTime() < now.getTime() + (3 * 60 * 60 * 1000)) {
             throw new Error("La cita debe ser con al menos 3 horas de antelación");
         }
-
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
         // 4. Enviar al Backend
-        const url = `${import.meta.env.VITE_API_URL}/api/date`;
+        const url = `${baseUrl}/api/date`;
         const response = await axios.post(url, output);
         
         console.log("✅ Cita guardada con éxito");
@@ -70,20 +70,25 @@ console.table(result.issues.map(i => ({ campo: i.path?.[0].key, mensaje: i.messa
 
 export async function getBarberAvailability(barber: string) {
     if (!barber) return [];
+
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+    const url = `${baseUrl}/api/date/${encodeURIComponent(barber)}`;
+    console.log("🚀 Llamando a:", url);
+    
     try {
-        // IMPORTANTE: Asegúrate que tu backend escuche en /availability
-        // y reciba el barbero por query string (?barber=...)
-        const url = `${import.meta.env.VITE_API_URL}/api/date/availability/${encodeURIComponent(barber)}`
-        console.log(url);
-        
         const response = await axios.get(url);
-        console.log(response);
         
-        // Retornamos el array de fechas ocupadas
-        const result =  response.data.data || []; 
-        console.log(result);
-        
+        // Si el backend responde con HTML es que la URL está mal configurada
+        if (typeof response.data === 'string' && response.data.includes('<!doctype html>')) {
+            console.error("❌ El backend devolvió HTML. Revisa tu VITE_API_URL");
+            return [];
+        }
+
+        // Accedemos a los datos. Si tu backend devuelve { data: [...] } usamos response.data.data
+        const result = response.data.data || response.data || []; 
+        console.log("📅 Disponibilidad recibida:", result);
         return Array.isArray(result) ? result : [];
+
     } catch (error) {
         console.error("Error trayendo disponibilidad:", error);
         return [];

@@ -193,6 +193,7 @@ export default function ListDate() {
                         <div className="w-full font-black text-amber-400 rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800 text-2xl flex items-center justify-center">
                             {price ? `${price}€` : "--"}
                         </div>
+                        <input type="hidden" name="price" value={price} />
                     </div>
 
                     <div className="space-y-2">

@@ -12,18 +12,18 @@ interface DatePickerProps {
 export default function CustomDatePicker({ selectedDate, onChange, busySlots: propSlots }: DatePickerProps) {
     const navigate = useNavigate();
     const { barber: urlBarber } = useParams();
-    const barberName = urlBarber || ""; 
+    const barber = urlBarber || ""; 
     const [internalSlots, setInternalSlots] = useState<any[]>([]);
     const [currentDay, setCurrentDay] = useState<Date>(new Date());
 
     // 1. Cargar disponibilidad desde el backend
     useEffect(() => {
-        if (barberName && !propSlots) {
-            getBarberAvailability(barberName).then(data => {
+        if (barber && !propSlots) {
+            getBarberAvailability(barber).then(data => {
                 setInternalSlots(data);
             });
         }
-    }, [barberName, propSlots]);
+    }, [barber, propSlots]);
 
     const finalSlots = Array.isArray(propSlots || internalSlots) ? (propSlots || internalSlots) : [];
 
@@ -85,7 +85,7 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
     const handleConfirmBooking = () => {
         if (selectedDate) {
             localStorage.setItem("temp_date", selectedDate.toISOString());
-            localStorage.setItem("temp_barber", barberName);
+            localStorage.setItem("temp_barber", barber);
             navigate("/"); // Redirige al home o formulario principal
         }
     };

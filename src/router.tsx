@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import Layout from "./layouts/Layout"; // Ajusta la ruta según tu carpeta
-import ListDate, { action as listDateAction } from "./pages/ListDate"
+import ListDate, { action as listDateAction } from "./pages/NewDate"
 import Login, { action as loginAction } from "./pages/Login"
 import { ProtectedRoute } from "./pages/ProtectedRoute";
 import Register, { action as registerAction } from "./pages/Register";
@@ -36,7 +36,7 @@ export const router = createBrowserRouter([
       // Ruta raíz: Formulario de Citas
       {
         index: true,
-        element: <ListDate />,
+        element: <ListDate/>,
         action: listDateAction,
       },
       // Grupo de rutas bajo /nuevo
