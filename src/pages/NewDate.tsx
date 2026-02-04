@@ -114,18 +114,25 @@ export default function ListDate() {
     };
 
     const generateMessage = (data: any) => {
-        const dateObj = new Date(data.dateList);
-        const dateStr = dateObj.toLocaleDateString('es-ES');
-        const timeStr = dateObj.toLocaleTimeString('es-ES', { 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: false
-        });
-        return template.replace("{cliente}", data.client)
-                       .replace("{fecha}", dateStr)
-                       .replace("{hora}", timeStr);
-    };
-
+    const dateObj = new Date(data.dateList);
+    
+    // Ajustar a zona horaria de Madrid (UTC+1)
+    const madridTime = new Date(dateObj.getTime());
+    
+    // Formatear manualmente
+    const day = madridTime.getDate().toString().padStart(2, '0');
+    const month = (madridTime.getMonth() + 1).toString().padStart(2, '0');
+    const year = madridTime.getFullYear();
+    const hours = madridTime.getHours().toString().padStart(2, '0');
+    const minutes = madridTime.getMinutes().toString().padStart(2, '0');
+    
+    const dateStr = `${day}/${month}/${year}`;
+    const timeStr = `${hours}:${minutes}`;
+    
+    return template.replace("{cliente}", data.client)
+                   .replace("{fecha}", dateStr)
+                   .replace("{hora}", timeStr);
+};
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
