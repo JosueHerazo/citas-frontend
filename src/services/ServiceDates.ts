@@ -72,7 +72,7 @@ export async function getAvailability(barber: string) {
     if (!barber) return [];
 
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-    const url = `${baseUrl}/api/date/barber/${encodeURIComponent(barber)}`;
+    const url = `${baseUrl}/api/availability/${encodeURIComponent(barber)}`;
     console.log("🚀 Llamando a:", url);
     
     try {
