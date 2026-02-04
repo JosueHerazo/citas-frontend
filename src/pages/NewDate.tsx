@@ -45,21 +45,21 @@ const SERVICIOS_DATA = [
     { service: "Lavado de Cabello", price: 2, duration: 10},
     { service: "Otros", price: 0, duration: 0 },
 ];
+// ... imports y configuraciones previas
 
 export default function ListDate() {
     const submit = useSubmit();
     const error = useActionData() as string;
     const [template] = useState(
-        "Hola {cliente}, tu cita en LatinosVip ha sido confirmada para el día {fecha} a las {hora}. Recuerda que las citas se reservan con 3h de antelación. ¡Te esperamos! recuerda reservar tu próxima cita https://cita-corte.netlify.app/" 
+        "Hola {cliente}, tu cita en LatinosVip ha sido confirmada para el día {fecha} a las {hora}. ¡Te esperamos! recuerda reservar tu próxima cita https://cita-corte.netlify.app/" 
     );
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-    const [price, setPrice] = useState<number | string>(""); // Corregido: setPrice
+    const [price, setPrice] = useState<number | string>("");
     const [barber, setBarber] = useState("");
     const [busySlots, setBusySlots] = useState<any[]>([]);
     const [currentDuration, setCurrentDuration] = useState(30);
     const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
     
-    // Corregido: 'name' en lugar de 'service' para evitar confusión con el servicio de barbería
     const [clientInfo] = useState({
         name: localStorage.getItem("cliente_nombre") || "",
         phone: localStorage.getItem("cliente_telefono") || ""
@@ -93,11 +93,11 @@ export default function ListDate() {
         return new Date(date.getTime() - offset).toLocaleString();
     };
 
+    // MODIFICADO: Solo verificar que no sea en el pasado
     const isTimeValid = (date: Date | null) => {
         if (!date) return false;
         const now = new Date();
-        const threeHoursFromNow = new Date(now.getTime() + 3 * 60 * 60 * 1000);
-        return date >= threeHoursFromNow;
+        return date >= now;
     };
 
     const handleServiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -114,18 +114,17 @@ export default function ListDate() {
     };
 
     const generateMessage = (data: any) => {
-    const dateObj = new Date(data.dateList);
-    // Usar 'es-ES' para asegurar el formato y la zona horaria del navegador
-    const dateStr = dateObj.toLocaleDateString('es-ES');
-    const timeStr = dateObj.toLocaleTimeString('es-ES', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false // Esto evita confusiones entre AM/PM
-    });
-    return template.replace("{cliente}", data.client)
-                   .replace("{fecha}", dateStr)
-                   .replace("{hora}", timeStr);
-};
+        const dateObj = new Date(data.dateList);
+        const dateStr = dateObj.toLocaleDateString('es-ES');
+        const timeStr = dateObj.toLocaleTimeString('es-ES', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false
+        });
+        return template.replace("{cliente}", data.client)
+                       .replace("{fecha}", dateStr)
+                       .replace("{hora}", timeStr);
+    };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -146,9 +145,10 @@ export default function ListDate() {
                 <h2 className="text-3xl font-black text-white">Reserva tu <span className="text-amber-400">Cita</span></h2>
             </header>
 
+            {/* MODIFICADO: Mensaje actualizado */}
             <div className="mb-6 p-4 bg-amber-400/10 border border-amber-400/20 rounded-2xl text-center">
                 <p className="text-amber-400 text-xs font-medium leading-relaxed italic">
-                    ⚠️ Mínimo 3 horas de antelación para reservar.
+                    ⚠️ Las citas no pueden ser en horarios ya ocupados. Verifica la disponibilidad.
                 </p>
             </div>
 
@@ -189,7 +189,9 @@ export default function ListDate() {
                     <select name="service" onChange={handleServiceChange} className="w-full font-bold text-white rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800 focus:border-amber-400 outline-none">
                         <option value="">Selecciona un servicio</option>
                         {SERVICIOS_DATA.map(s => (
-                            <option key={s.service} value={s.service}>{s.service} — {s.duration} min ({s.price}€)</option>
+                            <option key={s.service} value={s.service}>
+                                {s.service} — {s.duration} min ({s.price}€)
+                            </option>
                         ))}
                     </select>
                 </div>
