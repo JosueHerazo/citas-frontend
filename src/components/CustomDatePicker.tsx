@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { getBarberAvailability } from "../services/ServiceDates";
+import { getAvailability } from "../services/ServiceDates";
 
 interface DatePickerProps {
     selectedDate?: Date | null;
@@ -19,7 +19,7 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
     // 1. Cargar disponibilidad desde el backend
     useEffect(() => {
         if (barber && !propSlots) {
-            getBarberAvailability(barber).then(data => {
+            getAvailability(barber).then(data => {
                 setInternalSlots(data);
             });
         }

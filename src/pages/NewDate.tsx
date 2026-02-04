@@ -2,7 +2,7 @@ import { Link, Form, type ActionFunctionArgs, redirect, useActionData, useSubmit
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import ErrorMessaje from "../components/ErrorMessage"
-import { addProduct, getBarberAvailability } from "../services/ServiceDates"
+import { addProduct, getAvailability } from "../services/ServiceDates"
 import DatePicker from "../components/CustomDatePicker"
 import josuePerfil from "../assets/josuePerfil.jpeg"
 import vatoPerfil from "../assets/vatoPerfil.jpeg"
@@ -68,7 +68,7 @@ export default function ListDate() {
     useEffect(() => {
         if (barber) {
             setIsLoadingAvailability(true);
-            getBarberAvailability(barber).then(data => {
+            getAvailability(barber).then(data => {
                 const safeData = Array.isArray(data) ? data : [];
                 const dates = safeData.map((item: any) => item.dateList || item);
                 setBusySlots(dates);
