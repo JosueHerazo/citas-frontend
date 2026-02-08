@@ -17,7 +17,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.2",
-    "framer-motion": "^12.29.2",
+    "framer-motion": "^12.33.0",
     "lucide-react": "^0.563.0",
     "react": "^18.3.1",
     "react-datepicker": "^9.1.0",
