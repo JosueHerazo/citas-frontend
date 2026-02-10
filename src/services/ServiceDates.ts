@@ -81,7 +81,7 @@ export async function getBarberAvailability(barber: string) {
     if (!barber) return [];
 
     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-    const url = `${baseUrl}/api/date/availability/${encodeURIComponent(barber)}`;
+    const url = `${baseUrl}/api/date/${encodeURIComponent(barber)}`;
     console.log("🚀 Llamando a:", url);
     
     try {

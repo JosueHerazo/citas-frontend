@@ -1,6 +1,5 @@
-import { useNavigate, useParams } from "react-router-dom";
+import {  useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { getBarberAvailability } from "../services/ServiceDates";
 
 interface DatePickerProps {
@@ -10,12 +9,11 @@ interface DatePickerProps {
 }
 
 export default function CustomDatePicker({ selectedDate, onChange, busySlots: propSlots }: DatePickerProps) {
-    const navigate = useNavigate();
     const { barber: urlBarber } = useParams();
     const barber = urlBarber || ""; 
     const [internalSlots, setInternalSlots] = useState<any[]>([]);
     const [currentDay, setCurrentDay] = useState<Date>(new Date());
-
+    
     // 1. Cargar disponibilidad desde el backend
     useEffect(() => {
         if (barber && !propSlots) {
@@ -50,18 +48,18 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
 
     // 3. Lógica de comparación
     const checkIsBusy = (horaStr: string) => {
-        const [h, m] = horaStr.split(':').map(Number);
-        return finalSlots.some(slot => {
-            const dateSlot = new Date(slot);
-            return (
-                dateSlot.getDate() === currentDay.getDate() &&
-                dateSlot.getMonth() === currentDay.getMonth() &&
-                dateSlot.getFullYear() === currentDay.getFullYear() &&
-                dateSlot.getHours() === h &&
-                dateSlot.getMinutes() === m
-            );
-        });
-    };
+    const [h, m] = horaStr.split(':').map(Number);
+    return finalSlots.some(slot => {
+        const dateSlot = new Date(slot);
+        return (
+            dateSlot.getDate() === currentDay.getDate() &&
+            dateSlot.getMonth() === currentDay.getMonth() &&
+            // Usar GetHours() que es local, no getUTCHours()
+            dateSlot.getHours() === h && 
+            dateSlot.getMinutes() === m
+        );
+    });
+};
 
     const checkIsSelected = (horaStr: string) => {
         if (!selectedDate) return false;
@@ -82,28 +80,12 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
     };
 
     // 4. Acción de Confirmación (Uso de navigate)
-    const handleConfirmBooking = () => {
-        if (selectedDate) {
-            localStorage.setItem("temp_date", selectedDate.toISOString());
-            localStorage.setItem("temp_barber", barber);
-            navigate("/"); // Redirige al home o formulario principal
-        }
-    };
 
     return (
         <div className="p-4 bg-zinc-950 rounded-[2rem] border border-zinc-800 shadow-2xl">
             
             {/* BOTÓN DE CONFIRMACIÓN */}
-            {selectedDate && (
-                <motion.button
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    onClick={handleConfirmBooking}
-                    className="w-full mb-6 py-4 bg-amber-400 text-black font-black uppercase rounded-2xl shadow-lg hover:bg-amber-500 transition-all"
-                >
-                    Confirmar: {selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </motion.button>
-            )}
+           
 
             {/* SELECTOR DE DÍA */}
             <div className="flex justify-between items-center mb-6 px-2">

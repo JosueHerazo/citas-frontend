@@ -77,21 +77,33 @@ export default function ListDate() {
         }
     }, [barber]);
 
-    useEffect(() => {
-        const savedDate = localStorage.getItem("temp_date");
-        const savedBarber = localStorage.getItem("temp_barber");
-        if (savedDate && savedBarber) {
-            setSelectedDate(new Date(savedDate));
-            setBarber(savedBarber);
-            localStorage.removeItem("temp_date");
-            localStorage.removeItem("temp_barber");
-        }
-    }, []);
+  useEffect(() => {
+    let isMounted = true; // Control para evitar actualizaciones si el componente cambia
+
+    if (barber) {
+        setIsLoadingAvailability(true);
+        getBarberAvailability(barber).then(data => {
+            if (!isMounted) return; // Si el barbero cambió antes de que terminara la petición, ignoramos el resultado
+
+            const safeData = Array.isArray(data) ? data : [];
+            const dates = safeData.map((item: any) => item.dateList || item);
+            setBusySlots(dates);
+            setIsLoadingAvailability(false);
+        }).catch(() => {
+            if (isMounted) setIsLoadingAvailability(false);
+        });
+    }
+
+    return () => {
+        isMounted = false; // Limpieza al desmontar o cambiar el barbero
+    };
+}, [barber]);
 
     const getLocalISOString = (date: Date) => {
-        const offset = date.getTimezoneOffset() * 60000;
-        return new Date(date.getTime() - offset).toLocaleString();
-    };
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    // Esto genera: 2024-05-20T15:30:00 (Sin la 'Z' al final para que no sea UTC)
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+};
 
     const isTimeValid = (date: Date | null) => {
         if (!date) return false;
@@ -114,20 +126,27 @@ export default function ListDate() {
     };
 
     const generateMessage = (data: any) => {
+    // Importante: Si dateList viene del input hidden que usa getLocalISOString
     const dateObj = new Date(data.dateList);
-    // Usar 'es-ES' para asegurar el formato y la zona horaria del navegador
-   const dateStr = dateObj.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid' });
+    
+    // Usamos el formato local del navegador sin forzar timeZone 
+    // para que coincida con lo que el usuario seleccionó visualmente
+    const dateStr = dateObj.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+    
     const timeStr = dateObj.toLocaleTimeString('es-ES', { 
         hour: '2-digit', 
         minute: '2-digit',
-        hour12: false,
-        timeZone: 'Europe/Madrid' // <--- ESTO ES LA CLAVE
+        hour12: false
     });
+
     return template.replace("{cliente}", data.client)
                    .replace("{fecha}", dateStr)
                    .replace("{hora}", timeStr);
 };
-
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
