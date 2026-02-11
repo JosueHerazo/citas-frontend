@@ -1,7 +1,7 @@
-import { Link, Form, type ActionFunctionArgs, redirect, useActionData, useSubmit } from "react-router-dom"
+import { Form, type ActionFunctionArgs, redirect, useSubmit } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import ErrorMessaje from "../components/ErrorMessage"
+// Eliminados imports no usados: Link, ErrorMessaje, useActionData
 import { addProduct, getBarberAvailability } from "../services/ServiceDates"
 import DatePicker from "../components/CustomDatePicker"
 import josuePerfil from "../assets/josuePerfil.jpeg"
@@ -43,75 +43,48 @@ const SERVICIOS_DATA = [
     { service: "Limpieza Facial", price: 15, duration: 25 },
     { service: "Diseño", price: 3, duration: 10 },
     { service: "Lavado de Cabello", price: 2, duration: 10},
+    // NUEVO SERVICIO AÑADIDO
+    { service: "Rizos semipermanente", price: 0, duration: 2 }, 
     { service: "Otros", price: 0, duration: 0 },
 ];
 
 export default function ListDate() {
     const submit = useSubmit();
-    const error = useActionData() as string;
     const [template] = useState(
-        "Hola {cliente}, tu cita en LatinosVip ha sido confirmada para el día {fecha} a las {hora}. Recuerda reservar con antelacion. ¡Te esperamos!  reserva tu próxima cita https://cita-corte.netlify.app/" 
+        "Hola {cliente}, tu cita en LatinosVip ha sido confirmada para el día {fecha} a las {hora}. ¡Te esperamos! reserva tu próxima cita https://cita-corte.netlify.app/" 
     );
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-    const [price, setPrice] = useState<number | string>(""); // Corregido: setPrice
+    const [price, setPrice] = useState<number | string>(""); 
     const [barber, setBarber] = useState("");
     const [busySlots, setBusySlots] = useState<any[]>([]);
     const [currentDuration, setCurrentDuration] = useState(30);
     const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
     
-    // Corregido: 'name' en lugar de 'service' para evitar confusión con el servicio de barbería
     const [clientInfo] = useState({
         name: localStorage.getItem("cliente_nombre") || "",
         phone: localStorage.getItem("cliente_telefono") || ""
     });
 
     useEffect(() => {
+        let isMounted = true;
         if (barber) {
             setIsLoadingAvailability(true);
-            getBarberAvailability(barber).then(data => {
-                const safeData = Array.isArray(data) ? data : [];
-                const dates = safeData.map((item: any) => item.dateList || item);
-                setBusySlots(dates);
+            getBarberAvailability(barber).then(res => {
+                if (!isMounted) return;
+                const data = res.data || res;
+                setBusySlots(Array.isArray(data) ? data.map((item: any) => item.dateList || item) : []);
                 setIsLoadingAvailability(false);
+            }).catch(() => {
+                if (isMounted) setIsLoadingAvailability(false);
             });
         }
+        return () => { isMounted = false; };
     }, [barber]);
 
-  useEffect(() => {
-    let isMounted = true; // Control para evitar actualizaciones si el componente cambia
-
-    if (barber) {
-        setIsLoadingAvailability(true);
-        getBarberAvailability(barber).then(data => {
-            if (!isMounted) return; // Si el barbero cambió antes de que terminara la petición, ignoramos el resultado
-
-            const safeData = Array.isArray(data) ? data : [];
-            const dates = safeData.map((item: any) => item.dateList || item);
-            setBusySlots(dates);
-            setIsLoadingAvailability(false);
-        }).catch(() => {
-            if (isMounted) setIsLoadingAvailability(false);
-        });
-    }
-
-    return () => {
-        isMounted = false; // Limpieza al desmontar o cambiar el barbero
+    const getLocalISOString = (date: Date) => {
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
     };
-}, [barber]);
-
-  const getLocalISOString = (date: Date) => {
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    
-    const year = date.getFullYear();
-    const month = pad(date.getMonth() + 1);
-    const day = pad(date.getDate());
-    const hours = pad(date.getHours());
-    const minutes = pad(date.getMinutes());
-
-    // Retornamos el formato ISO pero SIN la 'Z' al final.
-    // Esto le dice al backend: "Esta es la hora local, no la cambies".
-    return `${year}-${month}-${day}T${hours}:${minutes}:00`;
-};
 
     const handleServiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const serviceName = e.target.value;
@@ -122,32 +95,34 @@ export default function ListDate() {
         }
     };
 
-    const handleBarberSelect = (barberId: string) => {
-        setBarber(barberId);
+    const generateMessage = (data: any) => {
+        const dateObj = new Date(data.dateList);
+        const day = dateObj.getDate().toString().padStart(2, '0');
+        const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+        const hours = dateObj.getHours().toString().padStart(2, '0');
+        const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+        const dateStr = `${day}/${month}/${dateObj.getFullYear()}`;
+        const timeStr = `${hours}:${minutes}`;
+
+        return template.replace("{cliente}", data.client)
+                       .replace("{fecha}", dateStr)
+                       .replace("{hora}", timeStr);
     };
 
-   const generateMessage = (data: any) => {
-    // data.dateList ya viene como la cadena "YYYY-MM-DDTHH:mm:00" que creamos arriba
-    const dateObj = new Date(data.dateList);
-    
-    const day = dateObj.getDate().toString().padStart(2, '0');
-    const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-    const hours = dateObj.getHours().toString().padStart(2, '0');
-    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
-
-    const dateStr = `${day}/${month}/${dateObj.getFullYear()}`;
-    const timeStr = `${hours}:${minutes}`;
-
-    return template.replace("{cliente}", data.client)
-                   .replace("{fecha}", dateStr)
-                   .replace("{hora}", timeStr);
-};
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const data = Object.fromEntries(formData);
+
+        // VALIDACIÓN: No permite enviar ni abrir WhatsApp si faltan campos
+        if (!data.barber || !data.service || !data.dateList || !data.client || !data.phone) {
+            alert("⚠️ Por favor, rellena todos los campos antes de confirmar.");
+            return;
+        }
+
         const cleanPhone = data.phone.toString().replace(/\s+/g, '');
         const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(generateMessage(data))}`; 
+        
         submit(e.currentTarget); 
         window.open(whatsappUrl, '_blank');
     };
@@ -157,17 +132,9 @@ export default function ListDate() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             className="mt-10 max-w-lg mx-auto p-8 bg-zinc-950 border border-zinc-800 rounded-[2.5rem] shadow-2xl"
         >
-            <header className="text-center mb-6">
+            <header className="text-center mb-8">
                 <h2 className="text-3xl font-black text-white">Reserva tu <span className="text-amber-400">Cita</span></h2>
             </header>
-
-            <div className="mb-6 p-4 bg-amber-400/10 border border-amber-400/20 rounded-2xl text-center">
-                <p className="text-amber-400 text-xs font-medium leading-relaxed italic">
-                    ⚠️ Mínimo 3 horas de antelación para reservar.
-                </p>
-            </div>
-
-            {error && <ErrorMessaje>{error}</ErrorMessaje>}
 
             <Form method="POST" onSubmit={handleSubmit} className="flex flex-col gap-6">
                 {/* Especialista */}
@@ -177,7 +144,7 @@ export default function ListDate() {
                         {BARBEROS_DATA.map((b) => (
                             <div
                                 key={b.id}
-                                onClick={() => handleBarberSelect(b.barber)}
+                                onClick={() => setBarber(b.barber)}
                                 className={`flex-1 cursor-pointer p-4 rounded-3xl border-2 transition-all duration-300 ${
                                     barber === b.barber 
                                     ? "border-amber-400 bg-amber-400/10 scale-105" 
@@ -185,13 +152,6 @@ export default function ListDate() {
                                 }`}
                             >
                                 <img src={b.foto} className="rounded-full w-full aspect-square object-cover" alt={b.barber} />
-                                {barber === b.barber && (
-                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2 text-center">
-                                        <Link to={`/barberos/disponibles/${barber}`} className="text-amber-500 text-[10px] font-black uppercase tracking-widest">
-                                            Ver disponibilidad
-                                        </Link>
-                                    </motion.div>
-                                )}
                             </div>
                         ))}
                     </div>
@@ -213,8 +173,8 @@ export default function ListDate() {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Precio</label>
-                        <div className="w-full font-black text-amber-400 rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800 text-2xl flex items-center justify-center">
-                            {price ? `${price}€` : "--"}
+                        <div className="w-full font-black text-amber-400 rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800 text-2xl flex items-center justify-center h-[60px]">
+                            {price !== "" ? `${price}€` : "--"}
                         </div>
                         <input type="hidden" name="price" value={price} />
                     </div>
@@ -236,23 +196,18 @@ export default function ListDate() {
 
                 {/* Datos Cliente */}
                 <div className="grid grid-cols-2 gap-4">
-                    <input name="client" defaultValue={clientInfo.name} placeholder="Tu Nombre" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white" />
-                    <input name="phone" defaultValue={clientInfo.phone} placeholder="Teléfono" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white" />
+                    <input name="client" defaultValue={clientInfo.name} placeholder="Tu Nombre" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white outline-none focus:border-amber-400" />
+                    <input name="phone" defaultValue={clientInfo.phone} placeholder="Teléfono" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white outline-none focus:border-amber-400" />
                 </div>
 
                 <motion.button 
-                    whileTap={{ scale: 0.98 }}
+                    whileTap={{ scale: 0.95 }}
                     type="submit"
-                    className={`py-5 rounded-2xl font-black text-xl uppercase tracking-widest  "bg-amber-400 text-black shadow-lg" : "bg-zinc-800 text-zinc-500"
-                    }`}
+                    className="py-5 mt-4 rounded-2xl font-black text-xl uppercase tracking-widest bg-amber-400 text-black shadow-[0_0_20px_rgba(251,191,36,0.2)] hover:bg-amber-500 transition-colors"
                 >
                     Confirmar Cita
                 </motion.button>
             </Form>
-
-            <footer className="mt-8 text-center">
-                <Link className="text-zinc-600 text-sm font-bold hover:text-amber-400" to="/">← INICIO</Link>
-            </footer>
         </motion.div>
     );
 }
