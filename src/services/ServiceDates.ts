@@ -55,19 +55,19 @@ export async function addProduct(data: ServiceData) {
 export async function getBarberAvailability(barber: string) {
     if (!barber) return [];
 
-    const baseUrl = import.meta.env.VITE_API_URL ;
-    // Añadimos /availability/ antes del nombre del barbero
+    // Limpiar baseUrl para asegurar que no haya doble //
+    const baseUrl = import.meta.env.VITE_API_URL.replace(/\/$/, ""); 
     const url = `${baseUrl}/api/date/availability/${encodeURIComponent(barber)}`;
     
-    console.log("🚀 Llamando a:", url);
+    console.log("🚀 Consultando disponibilidad en:", url);
     
     try {
-        const response = await axios.get(url);
-        // Extraemos los datos correctamente según tu controlador
-        const result = response.data.data || response.data || []; 
+        const { data } = await axios.get(url);
+        // Según tu date.Handler.ts, devuelves { data: busySlots }
+        const result = data.data || data; 
         return Array.isArray(result) ? result : [];
     } catch (error) {
-        console.error("Error trayendo disponibilidad:", error);
+        console.error("Error en disponibilidad:", error);
         return [];
     }
 }

@@ -109,18 +109,14 @@ export default function ListDate() {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!isFormValid) return;
-
-    // Guardar datos en localStorage para la próxima vez
-    localStorage.setItem("cliente_nombre", clientName);
-    localStorage.setItem("cliente_telefono", clientPhone);
 
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData);
 
-    // Formatear fecha y hora para el mensaje
+    // Formatear la fecha para que se lea bonita: "miércoles, 11 de febrero"
     const dateObj = new Date(data.dateList as string);
     const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const dateStr = dateObj.toLocaleDateString('es-ES', { 
@@ -129,26 +125,26 @@ export default function ListDate() {
         month: 'long' 
     });
     
-    // CONSTRUCCIÓN DEL MENSAJE DE WHATSAPP
+    // CONSTRUCCIÓN DEL MENSAJE
     const message = 
         `*¡Hola LatinosVip!* 💈\n\n` +
-        `He reservado una cita:\n` +
+        `Nueva cita reservada:\n` +
         `👤 *Cliente:* ${data.client}\n` +
         `✂️ *Servicio:* ${data.service}\n` +
-        `📅 *Día:* ${dateStr}\n` +
+        `📅 *Fecha:* ${dateStr}\n` +
         `⏰ *Hora:* ${timeStr}\n` +
         `💰 *Precio:* ${data.price}€\n` +
-        `🧔 *Especialista:* ${data.barber}\n\n` +
-        `_Confirmado vía web._`;
+        `🧔 *Barbero:* ${data.barber}\n\n` +
+        `_Enviado desde el sistema de reservas._`;
 
-    // Limpiar el teléfono de espacios o símbolos raros
+    // Limpiar el teléfono de símbolos
     const cleanPhone = data.phone?.toString().replace(/\D/g, ''); 
     const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`; 
     
-    // Ejecutar el envío al backend
+    // Enviar formulario al backend
     submit(e.currentTarget); 
     
-    // Abrir WhatsApp en pestaña nueva
+    // Abrir WhatsApp
     window.open(whatsappUrl, '_blank');
 };
 
@@ -177,10 +173,19 @@ export default function ListDate() {
                 {/* Servicio */}
                 <div className="space-y-2">
                     <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Servicio</label>
-                    <select name="service" value={service} onChange={handleServiceChange} className="w-full font-bold text-white rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800 focus:border-amber-400 outline-none transition-colors">
-                        <option value="">Selecciona un servicio</option>
-                        {SERVICIOS_DATA.map(s => <option key={s.service} value={s.service}>{s.service} — {s.price}€</option>)}
-                    </select>
+                   <select 
+                name="service" 
+                value={service} 
+                onChange={handleServiceChange} 
+                className="w-full font-bold text-white rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800 focus:border-amber-400 outline-none transition-colors"
+            >
+                <option value="">Selecciona un servicio</option>
+                {SERVICIOS_DATA.map(s => (
+                    <option key={s.service} value={s.service}>
+                        {s.service} — {s.price}€ ({s.duration} min)
+                    </option>
+                ))}
+</select>
                 </div>
 
                 {/* Horario y Precio */}
