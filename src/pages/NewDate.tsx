@@ -65,14 +65,20 @@ export default function ListDate() {
         phone: localStorage.getItem("cliente_telefono") || ""
     });
 
-    useEffect(() => {
+   useEffect(() => {
         let isMounted = true;
         if (barber) {
             setIsLoadingAvailability(true);
             getBarberAvailability(barber).then(res => {
                 if (!isMounted) return;
-                const data = res.data || res;
-                setBusySlots(Array.isArray(data) ? data.map((item: any) => item.dateList || item) : []);
+
+                // Como TS dice que 'res' es un array (any[]), lo usamos directamente
+                // Si 'res' es el array de citas, lo mapeamos. Si no es array, ponemos []
+                const slots = Array.isArray(res) 
+                    ? res.map((item: any) => item.dateList || item) 
+                    : [];
+
+                setBusySlots(slots);
                 setIsLoadingAvailability(false);
             }).catch(() => {
                 if (isMounted) setIsLoadingAvailability(false);
