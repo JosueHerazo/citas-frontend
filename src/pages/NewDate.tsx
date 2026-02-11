@@ -99,18 +99,20 @@ export default function ListDate() {
     };
 }, [barber]);
 
-    const getLocalISOString = (date: Date) => {
+  const getLocalISOString = (date: Date) => {
     const pad = (n: number) => n.toString().padStart(2, '0');
-    // Esto genera: 2024-05-20T15:30:00 (Sin la 'Z' al final para que no sea UTC)
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+    
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+
+    // Retornamos el formato ISO pero SIN la 'Z' al final.
+    // Esto le dice al backend: "Esta es la hora local, no la cambies".
+    return `${year}-${month}-${day}T${hours}:${minutes}:00`;
 };
 
-    const isTimeValid = (date: Date | null) => {
-        if (!date) return false;
-        const now = new Date();
-        const threeHoursFromNow = new Date(now.getTime() + 3 * 60 * 60 * 1000);
-        return date >= threeHoursFromNow;
-    };
 
     const handleServiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const serviceName = e.target.value;
@@ -125,23 +127,17 @@ export default function ListDate() {
         setBarber(barberId);
     };
 
-    const generateMessage = (data: any) => {
-    // Importante: Si dateList viene del input hidden que usa getLocalISOString
+  const generateMessage = (data: any) => {
+    // data.dateList ya viene como la cadena "YYYY-MM-DDTHH:mm:00" que creamos arriba
     const dateObj = new Date(data.dateList);
     
-    // Usamos el formato local del navegador sin forzar timeZone 
-    // para que coincida con lo que el usuario seleccionó visualmente
-    const dateStr = dateObj.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
-    
-    const timeStr = dateObj.toLocaleTimeString('es-ES', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false
-    });
+    const day = dateObj.getDate().toString().padStart(2, '0');
+    const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+    const hours = dateObj.getHours().toString().padStart(2, '0');
+    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+
+    const dateStr = `${day}/${month}/${dateObj.getFullYear()}`;
+    const timeStr = `${hours}:${minutes}`;
 
     return template.replace("{cliente}", data.client)
                    .replace("{fecha}", dateStr)
@@ -245,16 +241,7 @@ export default function ListDate() {
                     <input name="phone" defaultValue={clientInfo.phone} placeholder="Teléfono" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white" />
                 </div>
 
-                <motion.button 
-                    whileTap={{ scale: 0.98 }}
-                    disabled={!isTimeValid(selectedDate) || !barber}
-                    type="submit"
-                    className={`py-5 rounded-2xl font-black text-xl uppercase tracking-widest ${
-                        isTimeValid(selectedDate) && barber ? "bg-amber-400 text-black shadow-lg" : "bg-zinc-800 text-zinc-500"
-                    }`}
-                >
-                    Confirmar Cita
-                </motion.button>
+               
             </Form>
 
             <footer className="mt-8 text-center">
