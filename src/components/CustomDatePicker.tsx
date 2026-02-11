@@ -1,4 +1,4 @@
-import {  useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getBarberAvailability } from "../services/ServiceDates";
 
@@ -14,7 +14,7 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
     const [internalSlots, setInternalSlots] = useState<any[]>([]);
     const [currentDay, setCurrentDay] = useState<Date>(new Date());
     
-    // 1. Cargar disponibilidad desde el backend
+    // Cargar disponibilidad si no viene por props
     useEffect(() => {
         if (barber && !propSlots) {
             getBarberAvailability(barber).then(data => {
@@ -25,7 +25,6 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
 
     const finalSlots = Array.isArray(propSlots || internalSlots) ? (propSlots || internalSlots) : [];
 
-    // 2. Función para generar horarios (Faltaba definirla)
     const getHoursForDay = (date: Date) => {
         const day = date.getDay();
         const hours: string[] = [];
@@ -41,25 +40,23 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
         for (let i = start; i < end; i++) {
             hours.push(`${i}:00`, `${i}:30`);
         }
-        // Añadir la última hora de cierre si no es domingo
         if (day !== 0) hours.push(`${end}:00`); 
         return hours;
     };
 
-    // 3. Lógica de comparación
     const checkIsBusy = (horaStr: string) => {
-    const [h, m] = horaStr.split(':').map(Number);
-    return finalSlots.some(slot => {
-        const dateSlot = new Date(slot);
-        return (
-            dateSlot.getDate() === currentDay.getDate() &&
-            dateSlot.getMonth() === currentDay.getMonth() &&
-            // Usar GetHours() que es local, no getUTCHours()
-            dateSlot.getHours() === h && 
-            dateSlot.getMinutes() === m
-        );
-    });
-};
+        const [h, m] = horaStr.split(':').map(Number);
+        return finalSlots.some(slot => {
+            const dateSlot = new Date(slot);
+            return (
+                dateSlot.getDate() === currentDay.getDate() &&
+                dateSlot.getMonth() === currentDay.getMonth() &&
+                dateSlot.getFullYear() === currentDay.getFullYear() &&
+                dateSlot.getHours() === h && 
+                dateSlot.getMinutes() === m
+            );
+        });
+    };
 
     const checkIsSelected = (horaStr: string) => {
         if (!selectedDate) return false;
@@ -67,6 +64,7 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
         return (
             selectedDate.getDate() === currentDay.getDate() &&
             selectedDate.getMonth() === currentDay.getMonth() &&
+            selectedDate.getFullYear() === currentDay.getFullYear() &&
             selectedDate.getHours() === h &&
             selectedDate.getMinutes() === m
         );
@@ -79,20 +77,15 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
         if (onChange) onChange(nuevaFecha);
     };
 
-    // 4. Acción de Confirmación (Uso de navigate)
-
     return (
         <div className="p-4 bg-zinc-950 rounded-[2rem] border border-zinc-800 shadow-2xl">
             
-            {/* BOTÓN DE CONFIRMACIÓN */}
-           
-
             {/* SELECTOR DE DÍA */}
             <div className="flex justify-between items-center mb-6 px-2">
                 <button 
                     type="button"
                     onClick={() => { const d = new Date(currentDay); d.setDate(d.getDate() - 1); setCurrentDay(d); }}
-                    className="p-2 text-amber-500 font-black text-xl"
+                    className="p-2 text-amber-500 font-black text-xl hover:scale-110 transition-transform"
                 >
                     {"<"}
                 </button>
@@ -104,10 +97,20 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
                 <button 
                     type="button"
                     onClick={() => { const d = new Date(currentDay); d.setDate(d.getDate() + 1); setCurrentDay(d); }}
-                    className="p-2 text-amber-500 font-black text-xl"
+                    className="p-2 text-amber-500 font-black text-xl hover:scale-110 transition-transform"
                 >
                     {">"}
                 </button>
+            </div>
+
+            {/* LEYENDA RÁPIDA */}
+            <div className="flex justify-center gap-4 mb-4 text-[10px] uppercase font-bold">
+                <div className="flex items-center gap-1 text-emerald-500">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full"></span> Libre
+                </div>
+                <div className="flex items-center gap-1 text-red-500">
+                    <span className="w-2 h-2 bg-red-500 rounded-full"></span> Ocupado
+                </div>
             </div>
 
             {/* GRID DE HORAS */}
@@ -124,10 +127,10 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
                             onClick={() => handleHourSelect(hora)}
                             className={`py-3 rounded-xl text-[11px] font-bold transition-all border-2 ${
                                 isBusy 
-                                ? "bg-zinc-900/50 text-zinc-700 border-transparent cursor-not-allowed" 
+                                ? "bg-red-500/10 text-red-500 border-red-500/20 cursor-not-allowed" // ESTADO OCUPADO (ROJO)
                                 : isSelected
-                                ? "bg-amber-400 text-black border-amber-400"
-                                : "bg-zinc-900 text-zinc-300 border-zinc-800 hover:border-amber-400"
+                                ? "bg-amber-400 text-black border-amber-400 scale-95" // ESTADO SELECCIONADO
+                                : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:border-emerald-500" // ESTADO LIBRE (VERDE)
                             }`}
                         >
                             {hora}
