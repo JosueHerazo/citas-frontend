@@ -45,18 +45,20 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
     };
 
     const checkIsBusy = (horaStr: string) => {
-        const [h, m] = horaStr.split(':').map(Number);
-        return finalSlots.some(slot => {
-            const dateSlot = new Date(slot);
-            return (
-                dateSlot.getDate() === currentDay.getDate() &&
-                dateSlot.getMonth() === currentDay.getMonth() &&
-                dateSlot.getFullYear() === currentDay.getFullYear() &&
-                dateSlot.getHours() === h && 
-                dateSlot.getMinutes() === m
-            );
-        });
-    };
+    const [h, m] = horaStr.split(':').map(Number);
+    return finalSlots.some(slot => {
+        const dateSlot = new Date(slot);
+        
+        // Comparamos año, mes, día, hora y minuto ignorando segundos/milisegundos
+        return (
+            dateSlot.getFullYear() === currentDay.getFullYear() &&
+            dateSlot.getMonth() === currentDay.getMonth() &&
+            dateSlot.getDate() === currentDay.getDate() &&
+            dateSlot.getHours() === h && 
+            dateSlot.getMinutes() === m
+        );
+    });
+};
 
     const checkIsSelected = (horaStr: string) => {
         if (!selectedDate) return false;

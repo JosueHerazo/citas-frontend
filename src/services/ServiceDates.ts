@@ -19,85 +19,53 @@ const HORARIOS_BARBERIA = {
 
 export async function addProduct(data: ServiceData) {
     try {
-        // 1. Validar tipos con Valibot
         const result = safeParse(DraftDateSchema, {
             barber: data.barber,
             service: data.service,
             price: Number(data.price),
-            dateList: data.dateList,
+            dateList: data.dateList, // Ya viene en formato local desde ListDate
             client: data.client,
             phone: String(data.phone).trim(),
             duration: Number(data.duration)
         });
         
-        if (!result.success) {
-        console.table(result.issues.map(i => ({ campo: i.path?.[0].key, mensaje: i.message })));            throw new Error("Datos del formulario inválidos");
-        }
+        if (!result.success) throw new Error("Datos del formulario inválidos");
 
-                const { output } = result;
-
-        // 1. Crear el objeto Date (Mantenlo como objeto, NO uses .toISOString() aquí)
+        const { output } = result;
         const selectedDate = new Date(output.dateList as string);
-
-        // 2. Extraer datos para validación
         const diaSemana = selectedDate.getDay();
         const hora = selectedDate.getHours();
         const horarioHoy = HORARIOS_BARBERIA[diaSemana as keyof typeof HORARIOS_BARBERIA];
 
-        // 3. Validar Horario Comercial
-        if (!horarioHoy) {
-            throw new Error("La barbería está cerrada los domingos");
-        }
+        if (!horarioHoy) throw new Error("La barbería está cerrada hoy");
         if (hora < horarioHoy.inicio || hora >= horarioHoy.fin) {
             throw new Error(`Horario hoy: ${horarioHoy.inicio}:00 a ${horarioHoy.fin}:00`);
         }
 
-        // 4. Validar antelación (3 horas)
-        const now = new Date();
-        if (selectedDate.getTime() < now.getTime() + (3 * 60 * 60 * 1000)) {
-            throw new Error("La cita debe ser con al menos 3 horas de antelación");
-        }
-
-        // 5. Enviar al Backend (Aquí sí formateamos los datos)
         const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-        const url = `${baseUrl}/api/date`;
-
-        // Enviamos el output original pero asegurándonos que la fecha vaya en formato ISO
-        const response = await axios.post(url, {
-            ...output,
-            dateList: selectedDate.toISOString() // Solo convertimos a string para el envío
-        });
-        console.log("✅ Cita guardada con éxito");
+        // ENVIAMOS LA FECHA TAL CUAL (LOCAL), NO USEMOS toISOString()
+        const response = await axios.post(`${baseUrl}/api/date`, output);
         return response.data;
 
     } catch (error: any) {
         const msg = error.response?.data?.error || error.message || "Error desconocido";
-        console.error("❌ Error en la petición:", msg);
         throw new Error(msg); 
     }
 }
-
 export async function getBarberAvailability(barber: string) {
     if (!barber) return [];
 
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-    const url = `${baseUrl}/api/date/${encodeURIComponent(barber)}`;
+    const baseUrl = import.meta.env.VITE_API_URL ;
+    // Añadimos /availability/ antes del nombre del barbero
+    const url = `${baseUrl}/api/date/availability/${encodeURIComponent(barber)}`;
+    
     console.log("🚀 Llamando a:", url);
     
     try {
         const response = await axios.get(url);
-        
-        // Si el backend responde con HTML es que la URL está mal configurada
-        if (typeof response.data === 'string' && response.data.includes('<!doctype html>')) {
-            console.error("❌ El backend devolvió HTML. Revisa tu VITE_API_URL");
-            return [];
-        }
-
-        // Accedemos a los datos. Si tu backend devuelve { data: [...] } usamos response.data.data
+        // Extraemos los datos correctamente según tu controlador
         const result = response.data.data || response.data || []; 
-        console.log("📅 Disponibilidad recibida:", result);
         return Array.isArray(result) ? result : [];
-
     } catch (error) {
         console.error("Error trayendo disponibilidad:", error);
         return [];
