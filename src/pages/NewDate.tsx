@@ -113,7 +113,6 @@ export default function ListDate() {
     return `${year}-${month}-${day}T${hours}:${minutes}:00`;
 };
 
-
     const handleServiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const serviceName = e.target.value;
         const info = SERVICIOS_DATA.find(s => s.service === serviceName);
@@ -127,7 +126,7 @@ export default function ListDate() {
         setBarber(barberId);
     };
 
-  const generateMessage = (data: any) => {
+   const generateMessage = (data: any) => {
     // data.dateList ya viene como la cadena "YYYY-MM-DDTHH:mm:00" que creamos arriba
     const dateObj = new Date(data.dateList);
     
@@ -241,7 +240,14 @@ export default function ListDate() {
                     <input name="phone" defaultValue={clientInfo.phone} placeholder="Teléfono" className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white" />
                 </div>
 
-               
+                <motion.button 
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    className={`py-5 rounded-2xl font-black text-xl uppercase tracking-widest  "bg-amber-400 text-black shadow-lg" : "bg-zinc-800 text-zinc-500"
+                    }`}
+                >
+                    Confirmar Cita
+                </motion.button>
             </Form>
 
             <footer className="mt-8 text-center">
