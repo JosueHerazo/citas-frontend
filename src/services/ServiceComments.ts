@@ -3,7 +3,7 @@ import axios from "axios";
 // Fíjate bien que empiece con "export async function"
 export async function postComment(newsId: number, text: string, userName: string) {
     try {
-        const url = `${import.meta.env.VITE_API_URL}/api/comments/${newsId}`;
+        const url = `${import.meta.env.VITE_API_URL}/api/news/${newsId}/comments`;
         const { data } = await axios.post(url, { text, userName });
         return data;
     } catch (error) {

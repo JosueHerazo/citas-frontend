@@ -2,7 +2,7 @@ import {number, string, email,  pipe, boolean, object, InferOutput, any,} from "
 
 export const DraftRegisterSchema = object({
     name: string(),
-    phone: number(),
+    phone: string(),
     terms: boolean()
     // menssage:string
 })
