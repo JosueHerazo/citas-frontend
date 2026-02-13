@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLoaderData, useFetcher } from 'react-router-dom';
-import { Heart, MessageCircle, Plus, X, Image as ImageIcon, Film, Loader2 } from 'lucide-react';
+import { Heart,  Plus, X, Image as ImageIcon, Film, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import VideoPost from '../components/VideoPost';
 
