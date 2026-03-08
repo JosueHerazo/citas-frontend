@@ -10,57 +10,57 @@ interface DatePickerProps {
 
 export default function CustomDatePicker({ selectedDate, onChange, busySlots: propSlots }: DatePickerProps) {
     const { barber: urlBarber } = useParams();
-    const barber = urlBarber || ""; 
+    const barber = urlBarber || "";
     const [internalSlots, setInternalSlots] = useState<any[]>([]);
     const [currentDay, setCurrentDay] = useState<Date>(new Date());
-    
-    // Cargar disponibilidad si no viene por props
+
     useEffect(() => {
         if (barber && !propSlots) {
-            getBarberAvailability(barber).then(data => {
-                setInternalSlots(data);
-            });
+            getBarberAvailability(barber).then(data => setInternalSlots(data));
         }
     }, [barber, propSlots]);
 
-    const finalSlots = Array.isArray(propSlots || internalSlots) ? (propSlots || internalSlots) : [];
+    const finalSlots = Array.isArray(propSlots || internalSlots)
+        ? (propSlots || internalSlots)
+        : [];
 
     const getHoursForDay = (date: Date) => {
         const day = date.getDay();
         const hours: string[] = [];
-        let start = 10;
-        let end = 20;
-
-        if (day === 0) { // Domingo
-            start = 11; end = 17;
-        } else if (day >= 4 && day <= 6) { // Jueves a Sábado
-            start = 10; end = 21;
-        }
-
+        let start = 10, end = 20;
+        if (day === 0) { start = 11; end = 17; }
+        else if (day >= 4 && day <= 6) { start = 10; end = 21; }
         for (let i = start; i < end; i++) {
             hours.push(`${i}:00`, `${i}:30`);
         }
-        if (day !== 0) hours.push(`${end}:00`); 
+        if (day !== 0) hours.push(`${end}:00`);
         return hours;
     };
 
-  const checkIsBusy = (horaStr: string) => {
-    const [h, m] = horaStr.split(':').map(Number);
-    
-    return finalSlots.some(slot => {
-        // Convertimos el slot a objeto Date
-        const dateSlot = new Date(slot);
-        
-        // Comparamos usando la hora local para evitar desfases de zona horaria
-        const matchesYear = dateSlot.getFullYear() === currentDay.getFullYear();
-        const matchesMonth = dateSlot.getMonth() === currentDay.getMonth();
-        const matchesDay = dateSlot.getDate() === currentDay.getDate();
-        const matchesHour = dateSlot.getHours() === h;
-        const matchesMinute = dateSlot.getMinutes() === m;
+    // ✅ FIX PRINCIPAL: Parsear el slot como fecha LOCAL, no UTC
+    const checkIsBusy = (horaStr: string) => {
+        const [h, m] = horaStr.split(':').map(Number);
 
-        return matchesYear && matchesMonth && matchesDay && matchesHour && matchesMinute;
-    });
-};
+        return finalSlots.some(slot => {
+            // ✅ Si el slot viene como string "2024-03-08T10:00:00" (sin Z = local)
+            // new Date() lo interpreta como local. Pero si tiene Z o +00:00, es UTC.
+            // Forzamos interpretación local reemplazando la Z si existe:
+            const slotStr = typeof slot === 'string'
+                ? slot.replace('Z', '').replace('+00:00', '')  // quita sufijo UTC
+                : null;
+
+            const dateSlot = slotStr ? new Date(slotStr) : new Date(slot);
+
+            return (
+                dateSlot.getFullYear() === currentDay.getFullYear() &&
+                dateSlot.getMonth() === currentDay.getMonth() &&
+                dateSlot.getDate() === currentDay.getDate() &&
+                dateSlot.getHours() === h &&
+                dateSlot.getMinutes() === m
+            );
+        });
+    };
+
     const checkIsSelected = (horaStr: string) => {
         if (!selectedDate) return false;
         const [h, m] = horaStr.split(':').map(Number);
@@ -82,93 +82,95 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
 
     return (
         <div className="p-4 bg-zinc-950 rounded-[2rem] border border-zinc-800 shadow-2xl">
-            
+
             {/* SELECTOR DE DÍA */}
             <div className="flex justify-between items-center mb-6 px-2">
-             {/* BOTÓN ANTERIOR DÍA */}
-                <button 
+                <button
                     type="button"
-                    onClick={() => { 
-                        const d = new Date(currentDay); 
-                        d.setDate(d.getDate() - 1); 
-                        // Solo retroceder si el día resultante no es anterior a hoy
-                        if (d >= new Date(new Date().setHours(0,0,0,0))) {
-                            setCurrentDay(d); 
-                        }
+                    onClick={() => {
+                        const d = new Date(currentDay);
+                        d.setDate(d.getDate() - 1);
+                        if (d >= new Date(new Date().setHours(0, 0, 0, 0))) setCurrentDay(d);
                     }}
                     className={`p-2 font-black text-xl ${
-                        currentDay.toDateString() === new Date().toDateString() 
-                        ? "text-zinc-800 cursor-not-allowed" 
-                        : "text-amber-500"
+                        currentDay.toDateString() === new Date().toDateString()
+                            ? "text-zinc-800 cursor-not-allowed"
+                            : "text-amber-500"
                     }`}
-                >
-                    {"<"}
-                </button>
+                >{"<"}</button>
+
                 <div className="text-center">
                     <p className="text-white font-bold capitalize">
-                        {currentDay.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' })}
+                        {currentDay.toLocaleDateString('es-ES', {
+                            weekday: 'long', day: 'numeric', month: 'short'
+                        })}
                     </p>
                 </div>
-                <button 
+
+                <button
                     type="button"
-                    onClick={() => { const d = new Date(currentDay); d.setDate(d.getDate() + 1); setCurrentDay(d); }}
+                    onClick={() => {
+                        const d = new Date(currentDay);
+                        d.setDate(d.getDate() + 1);
+                        setCurrentDay(d);
+                    }}
                     className="p-2 text-amber-500 font-black text-xl hover:scale-110 transition-transform"
-                >
-                    {">"}
-                </button>
+                >{">"}</button>
             </div>
 
-                {/* LEYENDA RÁPIDA */}
-                <div className="flex justify-center gap-4 mb-4 text-[10px] uppercase font-bold">
-                    <div className="flex items-center gap-1 text-emerald-500">
-                        <span className="w-2 h-2 bg-emerald-500 rounded-full"></span> Libre
-                    </div>
-                    <div className="flex items-center gap-1 text-red-500">
-                        <span className="w-2 h-2 bg-red-500 rounded-full"></span> Ocupado
-                    </div>
+            {/* ✅ DEBUG TEMPORAL — quítalo después de confirmar que funciona */}
+            {finalSlots.length > 0 && (
+                <p className="text-[9px] text-zinc-600 text-center mb-2">
+                    {finalSlots.length} slots ocupados cargados
+                </p>
+            )}
+
+            {/* LEYENDA */}
+            <div className="flex justify-center gap-4 mb-4 text-[10px] uppercase font-bold">
+                <div className="flex items-center gap-1 text-emerald-500">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full"></span> Libre
                 </div>
+                <div className="flex items-center gap-1 text-red-500">
+                    <span className="w-2 h-2 bg-red-500 rounded-full"></span> Ocupado
+                </div>
+            </div>
 
-                {/* GRID DE HORAS */}
-                <div className="grid grid-cols-3 gap-2">
-                    // Dentro de tu CustomDatePicker.tsx, en el renderizado de los botones:
-
-    {getHoursForDay(currentDay).map((hora) => {
-        const isBusy = checkIsBusy(hora);
-        const isSelected = checkIsSelected(hora);
-        
-        // --- NUEVA LÓGICA DE BLOQUEO DE TIEMPO REAL ---
-        const [h, m] = hora.split(':').map(Number);
-        const now = new Date();
-        const isToday = currentDay.getDate() === now.getDate() && 
+            {/* GRID DE HORAS */}
+            <div className="grid grid-cols-3 gap-2">
+                {getHoursForDay(currentDay).map((hora) => {
+                    const isBusy = checkIsBusy(hora);
+                    const isSelected = checkIsSelected(hora);
+                    const [h, m] = hora.split(':').map(Number);
+                    const now = new Date();
+                    const isToday =
+                        currentDay.getDate() === now.getDate() &&
                         currentDay.getMonth() === now.getMonth() &&
                         currentDay.getFullYear() === now.getFullYear();
-        
-        // Una hora es "pasada" si es hoy y la hora/minuto es menor a la actual
-        const isPast = isToday && (h < now.getHours() || (h === now.getHours() && m < now.getMinutes()));
-        // ----------------------------------------------
+                    const isPast = isToday && (
+                        h < now.getHours() ||
+                        (h === now.getHours() && m < now.getMinutes())
+                    );
 
-        return (
-            <button
-                key={hora}
-                type="button"
-                // Ahora se deshabilita si está ocupada O si ya pasó
-                disabled={isBusy || isPast} 
-                onClick={() => handleHourSelect(hora)}
-                className={`py-3 rounded-xl text-[11px] font-bold transition-all border-2 ${
-                    isBusy 
-                    ? "bg-red-500/10 text-red-500 border-red-500/20 cursor-not-allowed opacity-50" 
-                    : isPast
-                    ? "bg-zinc-900 text-zinc-700 border-transparent cursor-not-allowed opacity-30" // Estilo para horas pasadas
-                    : isSelected
-                    ? "bg-amber-400 text-black border-amber-400"
-                    : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:border-emerald-500"
-                }`}
-            >
-                {hora}
-            </button>
-        );
-    })}
+                    return (
+                        <button
+                            key={hora}
+                            type="button"
+                            disabled={isBusy || isPast}
+                            onClick={() => handleHourSelect(hora)}
+                            className={`py-3 rounded-xl text-[11px] font-bold transition-all border-2 ${
+                                isBusy
+                                    ? "bg-red-500/10 text-red-500 border-red-500/20 cursor-not-allowed opacity-60"
+                                    : isPast
+                                    ? "bg-zinc-900 text-zinc-700 border-transparent cursor-not-allowed opacity-30"
+                                    : isSelected
+                                    ? "bg-amber-400 text-black border-amber-400"
+                                    : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 hover:border-emerald-500"
+                            }`}
+                        >
+                            {hora}
+                        </button>
+                    );
+                })}
             </div>
         </div>
     );
-}
