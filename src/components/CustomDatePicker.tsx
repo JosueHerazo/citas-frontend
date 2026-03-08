@@ -37,19 +37,30 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
         return hours;
     };
 
-    // ✅ FIX PRINCIPAL: Parsear el slot como fecha LOCAL, no UTC
     const checkIsBusy = (horaStr: string) => {
         const [h, m] = horaStr.split(':').map(Number);
 
         return finalSlots.some(slot => {
-            // ✅ Si el slot viene como string "2024-03-08T10:00:00" (sin Z = local)
-            // new Date() lo interpreta como local. Pero si tiene Z o +00:00, es UTC.
-            // Forzamos interpretación local reemplazando la Z si existe:
-            const slotStr = typeof slot === 'string'
-                ? slot.replace('Z', '').replace('+00:00', '')  // quita sufijo UTC
-                : null;
+            // Log temporal para debug
+            console.log("Slot raw:", slot, "| tipo:", typeof slot);
 
-            const dateSlot = slotStr ? new Date(slotStr) : new Date(slot);
+            let dateSlot: Date;
+
+            if (typeof slot === 'string') {
+                // Quita Z o +00:00 para forzar interpretación local
+                const clean = slot.replace('Z', '').replace('+00:00', '').replace(/\+\d{2}:\d{2}$/, '');
+                dateSlot = new Date(clean);
+            } else {
+                dateSlot = new Date(slot);
+            }
+
+            console.log(
+                "Slot parseado →",
+                `${dateSlot.getFullYear()}-${dateSlot.getMonth()+1}-${dateSlot.getDate()}`,
+                `${dateSlot.getHours()}:${dateSlot.getMinutes()}`,
+                "| Buscando:", `${currentDay.getFullYear()}-${currentDay.getMonth()+1}-${currentDay.getDate()}`,
+                `${h}:${m}`
+            );
 
             return (
                 dateSlot.getFullYear() === currentDay.getFullYear() &&
@@ -118,10 +129,15 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
                 >{">"}</button>
             </div>
 
-            {/* ✅ DEBUG TEMPORAL — quítalo después de confirmar que funciona */}
+            {/* CONTADOR DE SLOTS — debug */}
             {finalSlots.length > 0 && (
                 <p className="text-[9px] text-zinc-600 text-center mb-2">
                     {finalSlots.length} slots ocupados cargados
+                </p>
+            )}
+            {finalSlots.length === 0 && (
+                <p className="text-[9px] text-zinc-700 text-center mb-2">
+                    Sin slots ocupados
                 </p>
             )}
 
@@ -132,6 +148,9 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
                 </div>
                 <div className="flex items-center gap-1 text-red-500">
                     <span className="w-2 h-2 bg-red-500 rounded-full"></span> Ocupado
+                </div>
+                <div className="flex items-center gap-1 text-zinc-600">
+                    <span className="w-2 h-2 bg-zinc-700 rounded-full"></span> Pasado
                 </div>
             </div>
 
@@ -148,7 +167,7 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
                         currentDay.getFullYear() === now.getFullYear();
                     const isPast = isToday && (
                         h < now.getHours() ||
-                        (h === now.getHours() && m < now.getMinutes())
+                        (h === now.getHours() && m <= now.getMinutes())
                     );
 
                     return (
@@ -174,3 +193,4 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
             </div>
         </div>
     );
+}
