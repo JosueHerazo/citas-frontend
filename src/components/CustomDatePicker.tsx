@@ -38,37 +38,34 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
     };
 
     const checkIsBusy = (horaStr: string) => {
-        const [h, m] = horaStr.split(':').map(Number);
-        const slotMs = new Date(currentDay);
-        slotMs.setHours(h, m, 0, 0);
+    const [h, m] = horaStr.split(':').map(Number);
 
-        return finalSlots.some(slot => {
-            const rawDate = typeof slot === 'object' && slot !== null ? slot.dateList : slot;
-            const duration = typeof slot === 'object' && slot !== null ? (slot.duration || 30) : 30;
+    return finalSlots.some(slot => {
+        const rawDate = typeof slot === 'object' && slot !== null ? slot.dateList : slot;
+        const duration = typeof slot === 'object' && slot !== null ? (slot.duration || 30) : 30;
 
-            // ✅ Intentar parsear como local primero, luego como UTC
-            let citaStart: Date;
-            const raw = String(rawDate);
-            
-            if (raw.endsWith('Z') || raw.includes('+')) {
-                // Viene en UTC → convertir a local
-                citaStart = new Date(raw);
-            } else {
-                // Ya viene como local (sin Z)
-                citaStart = new Date(raw.replace('T', 'T'));
-            }
+        // ✅ Parseo manual para evitar diferencias UTC/local en Android
+        const raw = String(rawDate); // "2026-03-17T18:30:00"
+        const [datePart, timePart] = raw.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [ch, cm] = timePart.split(':').map(Number);
 
-            const citaEnd = new Date(citaStart.getTime() + duration * 60 * 1000);
+        // Comparar directamente sin crear objetos Date
+        const mismoDia =
+            year  === currentDay.getFullYear() &&
+            month === currentDay.getMonth() + 1 &&
+            day   === currentDay.getDate();
 
-            return (
-                citaStart.getFullYear() === currentDay.getFullYear() &&
-                citaStart.getMonth() === currentDay.getMonth() &&
-                citaStart.getDate() === currentDay.getDate() &&
-                slotMs >= citaStart &&
-                slotMs < citaEnd
-            );
-        });
-    };
+        if (!mismoDia) return false;
+
+        // Convertir todo a minutos y comparar el rango
+        const citaStartMin = ch * 60 + cm;
+        const citaEndMin   = citaStartMin + duration;
+        const slotMin      = h * 60 + m;
+
+        return slotMin >= citaStartMin && slotMin < citaEndMin;
+    });
+};
 
     const checkIsSelected = (horaStr: string) => {
         if (!selectedDate) return false;
