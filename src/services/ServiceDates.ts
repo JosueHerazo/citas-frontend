@@ -52,18 +52,13 @@ export async function addProduct(data: ServiceData) {
         throw new Error(msg); 
     }
 }
-export async function getBarberAvailability(barber: string) {
+export async function export async function getBarberAvailability(barber: string) {
     if (!barber) return [];
-
-    // Limpiar baseUrl para asegurar que no haya doble //
     const baseUrl = import.meta.env.VITE_API_URL.replace(/\/$/, ""); 
-    const url = `${baseUrl}/api/date/availability/${encodeURIComponent(barber)}`;
-    
-    console.log("🚀 Consultando disponibilidad en:", url);
+    const url = `${baseUrl}/api/date/availability/${encodeURIComponent(barber.trim())}`;
     
     try {
         const { data } = await axios.get(url);
-        // Según tu date.Handler.ts, devuelves { data: busySlots }
         const result = data.data || data; 
         return Array.isArray(result) ? result : [];
     } catch (error) {
