@@ -1,13 +1,3 @@
-import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { getBarberAvailability } from "../services/ServiceDates";
-
-interface DatePickerProps {
-    selectedDate?: Date | null;
-    onChange?: (date: Date | null) => void;
-    busySlots?: any[];
-}
-
 export default function CustomDatePicker({ selectedDate, onChange, busySlots: propSlots }: DatePickerProps) {
     const { barber: urlBarber } = useParams();
     const barber = urlBarber || "";
@@ -37,38 +27,26 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
         return hours;
     };
 
+    // ✅ FIX: parsea objeto {dateList, duration} o string legacy
+    // y bloquea el rango completo según duración
     const checkIsBusy = (horaStr: string) => {
         const [h, m] = horaStr.split(':').map(Number);
+        const slotMs = new Date(currentDay);
+        slotMs.setHours(h, m, 0, 0);
 
         return finalSlots.some(slot => {
-            // Log temporal para debug
-            console.log("Slot raw:", slot, "| tipo:", typeof slot);
+            const rawDate = typeof slot === 'object' && slot !== null ? slot.dateList : slot;
+            const duration = typeof slot === 'object' && slot !== null ? (slot.duration || 30) : 30;
 
-            let dateSlot: Date;
+            const clean = String(rawDate)
+                .replace('Z', '')
+                .replace('+00:00', '')
+                .replace(/\+\d{2}:\d{2}$/, '');
 
-            if (typeof slot === 'string') {
-                // Quita Z o +00:00 para forzar interpretación local
-                const clean = slot.replace('Z', '').replace('+00:00', '').replace(/\+\d{2}:\d{2}$/, '');
-                dateSlot = new Date(clean);
-            } else {
-                dateSlot = new Date(slot);
-            }
+            const citaStart = new Date(clean);
+            const citaEnd = new Date(citaStart.getTime() + duration * 60 * 1000);
 
-            console.log(
-                "Slot parseado →",
-                `${dateSlot.getFullYear()}-${dateSlot.getMonth()+1}-${dateSlot.getDate()}`,
-                `${dateSlot.getHours()}:${dateSlot.getMinutes()}`,
-                "| Buscando:", `${currentDay.getFullYear()}-${currentDay.getMonth()+1}-${currentDay.getDate()}`,
-                `${h}:${m}`
-            );
-
-            return (
-                dateSlot.getFullYear() === currentDay.getFullYear() &&
-                dateSlot.getMonth() === currentDay.getMonth() &&
-                dateSlot.getDate() === currentDay.getDate() &&
-                dateSlot.getHours() === h &&
-                dateSlot.getMinutes() === m
-            );
+            return slotMs >= citaStart && slotMs < citaEnd;
         });
     };
 
@@ -175,7 +153,7 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
                             key={hora}
                             type="button"
                             disabled={isBusy || isPast}
-                            onClick={() => handleHourSelect(hora)}
+                            onClick={() => !isBusy && !isPast && handleHourSelect(hora)}
                             className={`py-3 rounded-xl text-[11px] font-bold transition-all border-2 ${
                                 isBusy
                                     ? "bg-red-500/10 text-red-500 border-red-500/20 cursor-not-allowed opacity-60"
