@@ -1,3 +1,13 @@
+import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getBarberAvailability } from "../services/ServiceDates";
+
+interface DatePickerProps {
+    selectedDate?: Date | null;
+    onChange?: (date: Date | null) => void;
+    busySlots?: any[];
+}
+
 export default function CustomDatePicker({ selectedDate, onChange, busySlots: propSlots }: DatePickerProps) {
     const { barber: urlBarber } = useParams();
     const barber = urlBarber || "";
@@ -27,8 +37,6 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
         return hours;
     };
 
-    // ✅ FIX: parsea objeto {dateList, duration} o string legacy
-    // y bloquea el rango completo según duración
     const checkIsBusy = (horaStr: string) => {
         const [h, m] = horaStr.split(':').map(Number);
         const slotMs = new Date(currentDay);
@@ -38,15 +46,27 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
             const rawDate = typeof slot === 'object' && slot !== null ? slot.dateList : slot;
             const duration = typeof slot === 'object' && slot !== null ? (slot.duration || 30) : 30;
 
-            const clean = String(rawDate)
-                .replace('Z', '')
-                .replace('+00:00', '')
-                .replace(/\+\d{2}:\d{2}$/, '');
+            // ✅ Intentar parsear como local primero, luego como UTC
+            let citaStart: Date;
+            const raw = String(rawDate);
+            
+            if (raw.endsWith('Z') || raw.includes('+')) {
+                // Viene en UTC → convertir a local
+                citaStart = new Date(raw);
+            } else {
+                // Ya viene como local (sin Z)
+                citaStart = new Date(raw.replace('T', 'T'));
+            }
 
-            const citaStart = new Date(clean);
             const citaEnd = new Date(citaStart.getTime() + duration * 60 * 1000);
 
-            return slotMs >= citaStart && slotMs < citaEnd;
+            return (
+                citaStart.getFullYear() === currentDay.getFullYear() &&
+                citaStart.getMonth() === currentDay.getMonth() &&
+                citaStart.getDate() === currentDay.getDate() &&
+                slotMs >= citaStart &&
+                slotMs < citaEnd
+            );
         });
     };
 
@@ -107,7 +127,7 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
                 >{">"}</button>
             </div>
 
-            {/* CONTADOR DE SLOTS — debug */}
+            {/* CONTADOR DE SLOTS */}
             {finalSlots.length > 0 && (
                 <p className="text-[9px] text-zinc-600 text-center mb-2">
                     {finalSlots.length} slots ocupados cargados
@@ -135,13 +155,13 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
             {/* GRID DE HORAS */}
             <div className="grid grid-cols-3 gap-2">
                 {getHoursForDay(currentDay).map((hora) => {
-                    const isBusy = checkIsBusy(hora);
+                    const isBusy     = checkIsBusy(hora);
                     const isSelected = checkIsSelected(hora);
-                    const [h, m] = hora.split(':').map(Number);
-                    const now = new Date();
-                    const isToday =
-                        currentDay.getDate() === now.getDate() &&
-                        currentDay.getMonth() === now.getMonth() &&
+                    const [h, m]     = hora.split(':').map(Number);
+                    const now        = new Date();
+                    const isToday    =
+                        currentDay.getDate()     === now.getDate()     &&
+                        currentDay.getMonth()    === now.getMonth()    &&
                         currentDay.getFullYear() === now.getFullYear();
                     const isPast = isToday && (
                         h < now.getHours() ||
@@ -155,7 +175,7 @@ export default function CustomDatePicker({ selectedDate, onChange, busySlots: pr
                             disabled={isBusy || isPast}
                             onClick={() => !isBusy && !isPast && handleHourSelect(hora)}
                             className={`py-3 rounded-xl text-[11px] font-bold transition-all border-2 ${
-                                isBusy
+                                isBusy        // ✅ isBusy SIEMPRE tiene prioridad
                                     ? "bg-red-500/10 text-red-500 border-red-500/20 cursor-not-allowed opacity-60"
                                     : isPast
                                     ? "bg-zinc-900 text-zinc-700 border-transparent cursor-not-allowed opacity-30"
