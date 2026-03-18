@@ -52,7 +52,7 @@ export async function addProduct(data: ServiceData) {
         throw new Error(msg); 
     }
 }
-export async function export async function getBarberAvailability(barber: string) {
+export async function getBarberAvailability(barber: string) {
     if (!barber) return [];
     const baseUrl = import.meta.env.VITE_API_URL.replace(/\/$/, ""); 
     const url = `${baseUrl}/api/date/availability/${encodeURIComponent(barber.trim())}`;
