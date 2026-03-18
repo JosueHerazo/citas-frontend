@@ -37,6 +37,9 @@ async function saveConfig(clave: string, valor: unknown) {
 const BARBEROS_BASE = [
     { id: "Josue", nombre: "Josue", foto: josuePerfil },
     { id: "Vato",  nombre: "Vato",  foto: vatoPerfil  },
+{ id: "Stiven", nombre: "Stiven", foto: stivenPerfil },
+    { id: "Will",  nombre: "Will",  foto:  willPerfil },
+]
 ]
 
 const SERVICIOS_DEFAULT = [
