@@ -1,14 +1,14 @@
 import { Form, type ActionFunctionArgs, redirect, useSubmit } from "react-router-dom"
 import { useEffect, useState, useMemo, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { addProduct, getBarberAvailability } from "../services/ServiceDates"
+import { addProduct, getBarberAvailability, getBarberosDB, saveBarberosDB } from "../services/ServiceDates"
 import DatePicker from "../components/CustomDatePicker"
 import josuePerfil from "../assets/josuePerfil.jpeg"
-import vatoPerfil from "../assets/vatoPerfil.jpeg"
+import vatoPerfil  from "../assets/vatoPerfil.jpeg"
 
 export async function action({ request }: ActionFunctionArgs) {
     const formData = await request.formData()
-    const data = Object.fromEntries(formData)
+    const data     = Object.fromEntries(formData)
     if (Object.values(data).includes("")) return "Todos los campos son obligatorios"
     try {
         await addProduct(data)
@@ -18,29 +18,17 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 }
 
-const API = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || ""
-
-async function getConfig(clave: string) {
-    const res = await fetch(`${API}/api/config`)
-    const data = await res.json()
-    return data[clave] ?? null
-}
-
-async function saveConfig(clave: string, valor: unknown) {
-    await fetch(`${API}/api/config`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clave, valor })
-    })
-}
-
+// Barberos base con imágenes locales como fallback
 const BARBEROS_BASE = [
-    { id: "Josue", nombre: "Josue", foto: josuePerfil },
-    { id: "Vato",  nombre: "Vato",  foto: vatoPerfil  },
-{ id: "Stiven", nombre: "Stiven", foto: latinosvip },
-    { id: "Will",  nombre: "Will",  foto:  latinosvip },
+    { id: "josue", nombre: "Josue", foto: josuePerfil },
+    { id: "vato",  nombre: "Vato",  foto: vatoPerfil  },
 ]
-]
+
+// Mapa de fotos locales por nombre (para mantener imagen aunque no esté en BD)
+const FOTOS_LOCALES: Record<string, string> = {
+    josue: josuePerfil,
+    vato:  vatoPerfil,
+}
 
 const SERVICIOS_DEFAULT = [
     { service: "Corte",                price: 13, duration: 30 },
@@ -85,22 +73,26 @@ export default function ListDate() {
     const [nuevoNombre,           setNuevoNombre]           = useState("")
     const [editNombres,           setEditNombres]           = useState<Record<string, string>>({})
 
+    // ── Cargar barberos desde BD ─────────────────────────────
     useEffect(() => {
-        async function cargarConfig() {
+        async function cargar() {
             try {
-                const [barberData, serviceData] = await Promise.all([
-                    getConfig("barberos"),
-                    getConfig("servicios")
-                ])
-                if (Array.isArray(barberData)  && barberData.length  > 0) setBarberos(barberData)
-                if (Array.isArray(serviceData) && serviceData.length > 0) setServicios(serviceData)
+                const data = await getBarberosDB()
+                if (Array.isArray(data) && data.length > 0) {
+                    // Si el barbero tiene foto en BD úsala, si no usa la local por nombre
+                    const lista = data.map((b: Barbero) => ({
+                        ...b,
+                        foto: b.foto || FOTOS_LOCALES[b.id.toLowerCase()] || ""
+                    }))
+                    setBarberos(lista)
+                }
             } catch (e) {
-                console.warn("Config no disponible, usando defaults", e)
+                console.warn("Usando barberos por defecto", e)
             } finally {
                 setLoadingCfg(false)
             }
         }
-        cargarConfig()
+        cargar()
     }, [])
 
     useEffect(() => {
@@ -111,11 +103,12 @@ export default function ListDate() {
         }
     }, [showModal])
 
+    // ── Persistir en BD ──────────────────────────────────────
     const persistirBarberos = async (lista: Barbero[]) => {
         setBarberos(lista)
         setSaving(true)
         try {
-            await saveConfig("barberos", lista)
+            await saveBarberosDB(lista)
         } catch (e) {
             console.error("Error guardando barberos", e)
         } finally {
@@ -125,7 +118,11 @@ export default function ListDate() {
 
     const handleAñadir = async () => {
         if (!nuevoNombre.trim()) return
-        const nuevo: Barbero = { id: Date.now().toString(), nombre: nuevoNombre.trim(), foto: "" }
+        const nuevo: Barbero = {
+            id:     Date.now().toString(),
+            nombre: nuevoNombre.trim(),
+            foto:   ""
+        }
         await persistirBarberos([...barberos, nuevo])
         setNuevoNombre("")
     }
