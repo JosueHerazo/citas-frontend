@@ -65,7 +65,7 @@ export default function ListDate() {
     const [clientName,            setClientName]            = useState(localStorage.getItem("cliente_nombre")    || "")
     const [clientPhone,           setClientPhone]           = useState(localStorage.getItem("cliente_telefono") || "")
     const [barberos,              setBarberos]              = useState<Barbero[]>(BARBEROS_BASE)
-    const [servicios,             setServicios]             = useState(SERVICIOS_DEFAULT)
+    const [servicios] = useState(SERVICIOS_DEFAULT)
     const [loadingCfg,            setLoadingCfg]            = useState(true)
     const [showModal,             setShowModal]             = useState(false)
     const [editandoId,            setEditandoId]            = useState<string | null>(null)
