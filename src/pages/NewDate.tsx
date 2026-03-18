@@ -76,16 +76,12 @@ export default function ListDate() {
     const [barberos,              setBarberos]              = useState<Barbero[]>(BARBEROS_BASE)
     const [servicios,             setServicios]             = useState(SERVICIOS_DEFAULT)
     const [loadingCfg,            setLoadingCfg]            = useState(true)
+    const [showModal,             setShowModal]             = useState(false)
+    const [editandoId,            setEditandoId]            = useState<string | null>(null)
+    const [saving,                setSaving]                = useState(false)
+    const [nuevoNombre,           setNuevoNombre]           = useState("")
+    const [editNombres,           setEditNombres]           = useState<Record<string, string>>({})
 
-    // --- Modal state ---
-    const [showModal,    setShowModal]    = useState(false)
-    const [editandoId,   setEditandoId]   = useState<string | null>(null)
-    const [saving,       setSaving]       = useState(false)
-    const [nuevoNombre,  setNuevoNombre]  = useState("")
-    // nombre temporal mientras se edita en el modal
-    const [editNombres,  setEditNombres]  = useState<Record<string, string>>({})
-
-    // ── Cargar config desde PostgreSQL ──────────────────────────────
     useEffect(() => {
         async function cargarConfig() {
             try {
@@ -104,7 +100,6 @@ export default function ListDate() {
         cargarConfig()
     }, [])
 
-    // Sincronizar editNombres cuando abres el modal
     useEffect(() => {
         if (showModal) {
             const mapa: Record<string, string> = {}
@@ -113,7 +108,6 @@ export default function ListDate() {
         }
     }, [showModal])
 
-    // ── Persistir barberos en backend ────────────────────────────────
     const persistirBarberos = async (lista: Barbero[]) => {
         setBarberos(lista)
         setSaving(true)
@@ -126,26 +120,19 @@ export default function ListDate() {
         }
     }
 
-    // ── Añadir barbero nuevo ─────────────────────────────────────────
     const handleAñadir = async () => {
         if (!nuevoNombre.trim()) return
-        const nuevo: Barbero = {
-            id:     Date.now().toString(),
-            nombre: nuevoNombre.trim(),
-            foto:   "" // sin foto por defecto
-        }
+        const nuevo: Barbero = { id: Date.now().toString(), nombre: nuevoNombre.trim(), foto: "" }
         await persistirBarberos([...barberos, nuevo])
         setNuevoNombre("")
     }
 
-    // ── Borrar barbero ───────────────────────────────────────────────
     const handleBorrar = async (id: string) => {
         const lista = barberos.filter(b => b.id !== id)
         if (barber === barberos.find(b => b.id === id)?.nombre) setBarber("")
         await persistirBarberos(lista)
     }
 
-    // ── Guardar nombre editado ───────────────────────────────────────
     const handleGuardarNombre = async (id: string) => {
         const nuevo = editNombres[id]?.trim()
         if (!nuevo) return
@@ -154,7 +141,6 @@ export default function ListDate() {
         await persistirBarberos(barberos.map(b => b.id === id ? { ...b, nombre: nuevo } : b))
     }
 
-    // ── Cambiar foto ─────────────────────────────────────────────────
     const handleCambiarFoto = (id: string, archivo: File) => {
         const reader = new FileReader()
         reader.onload = async (e) => {
@@ -164,7 +150,6 @@ export default function ListDate() {
         reader.readAsDataURL(archivo)
     }
 
-    // ── Disponibilidad ───────────────────────────────────────────────
     useEffect(() => {
         let isMounted = true
         if (barber) {
@@ -222,15 +207,10 @@ export default function ListDate() {
 
     return (
         <>
-        {/* ══════════════════════════════════════════
-            MODAL GESTIÓN DE BARBEROS
-        ══════════════════════════════════════════ */}
         <AnimatePresence>
             {showModal && (
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4"
                     onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false) }}
                 >
@@ -240,28 +220,19 @@ export default function ListDate() {
                         exit={{    scale: 0.9, opacity: 0, y: 20 }}
                         className="w-full max-w-md bg-zinc-950 border border-zinc-800 rounded-3xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto"
                     >
-                        {/* Header modal */}
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-amber-400 font-black text-lg">✂️ Gestionar Barberos</h3>
                             <button onClick={() => setShowModal(false)}
-                                className="text-zinc-500 hover:text-white w-8 h-8 rounded-full border border-zinc-700 flex items-center justify-center transition-colors">
-                                ✕
-                            </button>
+                                className="text-zinc-500 hover:text-white w-8 h-8 rounded-full border border-zinc-700 flex items-center justify-center transition-colors">✕</button>
                         </div>
 
                         {saving && (
-                            <p className="text-amber-400 text-[10px] font-bold animate-pulse text-center mb-3">
-                                Guardando...
-                            </p>
+                            <p className="text-amber-400 text-[10px] font-bold animate-pulse text-center mb-3">Guardando...</p>
                         )}
 
-                        {/* Lista de barberos existentes */}
                         <div className="space-y-3 mb-6">
                             {barberos.map((b) => (
-                                <div key={b.id}
-                                    className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
-
-                                    {/* Foto — click para cambiar */}
+                                <div key={b.id} className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded-2xl p-3">
                                     <div className="relative cursor-pointer flex-shrink-0"
                                         onClick={() => { setEditandoId(b.id); fileInputRef.current?.click() }}>
                                         {b.foto
@@ -272,8 +243,6 @@ export default function ListDate() {
                                         }
                                         <span className="absolute -bottom-1 -right-1 bg-amber-400 text-black text-[8px] rounded-full w-4 h-4 flex items-center justify-center font-black">✎</span>
                                     </div>
-
-                                    {/* Nombre editable */}
                                     <input
                                         type="text"
                                         value={editNombres[b.id] ?? b.nombre}
@@ -281,10 +250,7 @@ export default function ListDate() {
                                         onBlur={() => handleGuardarNombre(b.id)}
                                         className="flex-1 bg-zinc-800 text-white text-sm p-2 rounded-xl border border-zinc-700 focus:border-amber-400 outline-none"
                                     />
-
-                                    {/* Botón borrar */}
-                                    <button
-                                        onClick={() => handleBorrar(b.id)}
+                                    <button onClick={() => handleBorrar(b.id)}
                                         className="flex-shrink-0 w-8 h-8 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 flex items-center justify-center transition-colors text-sm">
                                         🗑
                                     </button>
@@ -292,7 +258,6 @@ export default function ListDate() {
                             ))}
                         </div>
 
-                        {/* Input file oculto para foto */}
                         <input
                             ref={fileInputRef}
                             type="file"
@@ -305,7 +270,6 @@ export default function ListDate() {
                             }}
                         />
 
-                        {/* Añadir nuevo barbero */}
                         <div className="border-t border-zinc-800 pt-4">
                             <p className="text-zinc-400 text-xs font-bold uppercase mb-3">Añadir nuevo barbero</p>
                             <div className="flex gap-2">
@@ -317,9 +281,7 @@ export default function ListDate() {
                                     placeholder="Nombre del barbero"
                                     className="flex-1 bg-zinc-900 text-white text-sm p-3 rounded-xl border border-zinc-700 focus:border-amber-400 outline-none"
                                 />
-                                <button
-                                    onClick={handleAñadir}
-                                    disabled={!nuevoNombre.trim()}
+                                <button onClick={handleAñadir} disabled={!nuevoNombre.trim()}
                                     className="bg-amber-400 disabled:bg-zinc-700 disabled:text-zinc-500 text-black font-black px-4 rounded-xl transition-colors">
                                     +
                                 </button>
@@ -333,9 +295,6 @@ export default function ListDate() {
             )}
         </AnimatePresence>
 
-        {/* ══════════════════════════════════════════
-            FORMULARIO PRINCIPAL
-        ══════════════════════════════════════════ */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             className="mt-10 max-w-lg mx-auto p-8 bg-zinc-950 border border-zinc-800 rounded-[2.5rem] shadow-2xl">
 
@@ -345,18 +304,14 @@ export default function ListDate() {
 
             <Form method="POST" onSubmit={handleSubmit} className="flex flex-col gap-6">
 
-                {/* ESPECIALISTA */}
                 <div className="space-y-3">
                     <div className="flex justify-between items-center">
                         <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Especialista</label>
-                        {/* Botón que abre el modal */}
                         <button type="button" onClick={() => setShowModal(true)}
                             className="text-[10px] text-zinc-500 hover:text-amber-400 border border-zinc-800 px-2 py-1 rounded-full transition-colors">
                             ⚙️ Gestionar
                         </button>
                     </div>
-
-                    {/* Tarjetas barberos */}
                     <div className="flex gap-4 flex-wrap">
                         {barberos.map((b) => (
                             <div key={b.id}
@@ -380,7 +335,6 @@ export default function ListDate() {
                     <input type="hidden" name="barber" value={barber} />
                 </div>
 
-                {/* SERVICIO */}
                 <div className="space-y-2">
                     <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Servicio</label>
                     <select name="service" value={service} onChange={handleServiceChange}
@@ -394,7 +348,6 @@ export default function ListDate() {
                     </select>
                 </div>
 
-                {/* HORARIO */}
                 <div className="space-y-2">
                     <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Horario</label>
                     {isLoadingAvailability && (
@@ -408,7 +361,6 @@ export default function ListDate() {
                     <input type="hidden" name="price"     value={price} />
                 </div>
 
-                {/* DATOS CLIENTE */}
                 <div className="space-y-2">
                     <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Tus Datos</label>
                     <div className="grid grid-cols-2 gap-4">
@@ -423,7 +375,6 @@ export default function ListDate() {
                     </div>
                 </div>
 
-                {/* PRECIO */}
                 {price !== "" && (
                     <div className="bg-amber-400/5 border border-amber-400/20 rounded-2xl p-4 flex justify-between items-center">
                         <span className="text-zinc-400 text-sm font-bold uppercase">Total a pagar:</span>
@@ -444,107 +395,5 @@ export default function ListDate() {
             </Form>
         </motion.div>
         </>
-    )
-}
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0]
-                                            if (file && editandoId) handleCambiarFoto(editandoId, file)
-                                            e.target.value = ""
-                                        }}
-                                    />
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* Tarjetas de barberos */}
-                    <div className="flex gap-4">
-                        {barberos.map((b) => (
-                            <div key={b.id}
-                                onClick={() => { setBarber(b.nombre); setSelectedDate(null) }}
-                                className={`flex-1 cursor-pointer p-4 rounded-3xl border-2 transition-all duration-300 
-                                    ${barber === b.nombre
-                                        ? "border-amber-400 bg-amber-400/10 scale-105"
-                                        : "border-zinc-800 bg-zinc-900/50 grayscale hover:grayscale-0"}`}>
-                                <img src={b.foto} className="rounded-full w-full aspect-square object-cover" alt={b.nombre} />
-                                <p className={`text-center mt-2 text-[10px] font-bold ${barber === b.nombre ? "text-amber-400" : "text-zinc-500"}`}>
-                                    {b.nombre}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                    <input type="hidden" name="barber" value={barber} />
-                </div>
-
-                {/* SERVICIO */}
-                <div className="space-y-2">
-                    <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Servicio</label>
-                    <select name="service" value={service} onChange={handleServiceChange}
-                        className="w-full font-bold text-white rounded-2xl p-4 bg-zinc-900 border-2 border-zinc-800 focus:border-amber-400 outline-none transition-colors">
-                        <option value="">Selecciona un servicio</option>
-                        {SERVICIOS_DATA.map(s => (
-                            <option key={s.service} value={s.service}>
-                                {s.service} — {s.price}€ ({s.duration} min)
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                {/* HORARIO */}
-                <div className="space-y-2">
-                    <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Horario</label>
-                    {isLoadingAvailability && (
-                        <p className="text-amber-400 text-[10px] font-bold animate-pulse">Cargando disponibilidad...</p>
-                    )}
-                    <div className={`transition-opacity duration-500 ${(!barber || isLoadingAvailability) ? "opacity-20 pointer-events-none" : "opacity-100"}`}>
-                        <DatePicker
-                            selectedDate={selectedDate}
-                            onChange={(date) => setSelectedDate(date)}
-                            busySlots={busySlots}
-                        />
-                    </div>
-                    <input type="hidden" name="dateList" value={selectedDate ? getLocalISOString(selectedDate) : ""} />
-                    <input type="hidden" name="duration" value={currentDuration} />
-                    <input type="hidden" name="price" value={price} />
-                </div>
-
-                {/* DATOS CLIENTE */}
-                <div className="space-y-2">
-                    <label className="text-zinc-400 text-xs font-bold uppercase ml-1">Tus Datos</label>
-                    <div className="grid grid-cols-2 gap-4">
-                        <input name="client" value={clientName}
-                            onChange={(e) => { setClientName(e.target.value); localStorage.setItem("cliente_nombre", e.target.value) }}
-                            placeholder="Tu Nombre"
-                            className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white outline-none focus:border-amber-400 transition-all" />
-                        <input name="phone" value={clientPhone}
-                            onChange={(e) => { setClientPhone(e.target.value); localStorage.setItem("cliente_telefono", e.target.value) }}
-                            placeholder="WhatsApp"
-                            className="w-full p-4 rounded-2xl bg-zinc-900 border-2 border-zinc-800 text-white outline-none focus:border-amber-400 transition-all" />
-                    </div>
-                </div>
-
-                {/* PRECIO */}
-                {price !== "" && (
-                    <div className="bg-amber-400/5 border border-amber-400/20 rounded-2xl p-4 flex justify-between items-center">
-                        <span className="text-zinc-400 text-sm font-bold uppercase">Total a pagar:</span>
-                        <span className="text-amber-400 text-2xl font-black">{price}€</span>
-                    </div>
-                )}
-
-                <motion.button
-                    disabled={!isFormValid}
-                    whileTap={isFormValid ? { scale: 0.95 } : {}}
-                    type="submit"
-                    className={`py-5 mt-4 rounded-2xl font-black text-xl uppercase tracking-widest transition-all duration-300 
-                        ${isFormValid
-                            ? "bg-amber-400 text-black shadow-[0_0_20px_rgba(251,191,36,0.3)] hover:bg-amber-500"
-                            : "bg-zinc-800 text-zinc-500 cursor-not-allowed"}`}>
-                    {isFormValid ? "Confirmar Cita" : "Completa los datos"}
-                </motion.button>
-            </Form>
-        </motion.div>
     )
 }
