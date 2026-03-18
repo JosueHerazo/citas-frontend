@@ -18,13 +18,11 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 }
 
-// Barberos base con imágenes locales como fallback
 const BARBEROS_BASE = [
     { id: "josue", nombre: "Josue", foto: josuePerfil },
     { id: "vato",  nombre: "Vato",  foto: vatoPerfil  },
 ]
 
-// Mapa de fotos locales por nombre (para mantener imagen aunque no esté en BD)
 const FOTOS_LOCALES: Record<string, string> = {
     josue: josuePerfil,
     vato:  vatoPerfil,
@@ -65,7 +63,7 @@ export default function ListDate() {
     const [clientName,            setClientName]            = useState(localStorage.getItem("cliente_nombre")    || "")
     const [clientPhone,           setClientPhone]           = useState(localStorage.getItem("cliente_telefono") || "")
     const [barberos,              setBarberos]              = useState<Barbero[]>(BARBEROS_BASE)
-    const [servicios] = useState(SERVICIOS_DEFAULT)
+    const [servicios]                                       = useState(SERVICIOS_DEFAULT)
     const [loadingCfg,            setLoadingCfg]            = useState(true)
     const [showModal,             setShowModal]             = useState(false)
     const [editandoId,            setEditandoId]            = useState<string | null>(null)
@@ -73,13 +71,11 @@ export default function ListDate() {
     const [nuevoNombre,           setNuevoNombre]           = useState("")
     const [editNombres,           setEditNombres]           = useState<Record<string, string>>({})
 
-    // ── Cargar barberos desde BD ─────────────────────────────
     useEffect(() => {
         async function cargar() {
             try {
                 const data = await getBarberosDB()
                 if (Array.isArray(data) && data.length > 0) {
-                    // Si el barbero tiene foto en BD úsala, si no usa la local por nombre
                     const lista = data.map((b: Barbero) => ({
                         ...b,
                         foto: b.foto || FOTOS_LOCALES[b.id.toLowerCase()] || ""
@@ -103,7 +99,6 @@ export default function ListDate() {
         }
     }, [showModal])
 
-    // ── Persistir en BD ──────────────────────────────────────
     const persistirBarberos = async (lista: Barbero[]) => {
         setBarberos(lista)
         setSaving(true)
@@ -312,11 +307,13 @@ export default function ListDate() {
                             ⚙️ Gestionar
                         </button>
                     </div>
-                    <div className="flex gap-4 flex-wrap">
+
+                    {/* ✅ GRID FIJO — siempre 3 por fila */}
+                    <div className="grid grid-cols-3 gap-3">
                         {barberos.map((b) => (
                             <div key={b.id}
                                 onClick={() => { setBarber(b.nombre); setSelectedDate(null) }}
-                                className={`flex-1 min-w-[80px] cursor-pointer p-4 rounded-3xl border-2 transition-all duration-300 
+                                className={`cursor-pointer p-3 rounded-3xl border-2 transition-all duration-300 
                                     ${barber === b.nombre
                                         ? "border-amber-400 bg-amber-400/10 scale-105"
                                         : "border-zinc-800 bg-zinc-900/50 grayscale hover:grayscale-0"}`}>
@@ -396,4 +393,3 @@ export default function ListDate() {
         </motion.div>
         </>
     )
-}
