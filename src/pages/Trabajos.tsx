@@ -16,7 +16,7 @@ export default function Trabajos() {
     const [pass,        setPass]        = useState("")
     const [passError,   setPassError]   = useState(false)
     const [authed,      setAuthed]      = useState(false)
-    const [showForm,    setShowForm]    = useState(false)
+    
     const [uploading,   setUploading]   = useState(false)
     const [preview,     setPreview]     = useState<string | null>(null)
     const [fileType,    setFileType]    = useState<'image' | 'video'>('image')
@@ -76,7 +76,7 @@ export default function Trabajos() {
             await cargarTrabajos()
             setForm({ titulo: '', descripcion: '', categoria: 'Cortes', barbero: '', archivo: null })
             setPreview(null)
-            setShowForm(false)
+          
         } catch (e) {
             console.error(e)
         } finally {
