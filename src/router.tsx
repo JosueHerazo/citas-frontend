@@ -7,7 +7,7 @@ import { ProtectedRoute } from "./pages/ProtectedRoute";
 import Register, { action as registerAction } from "./pages/Register";
 import Videos from "./pages/Videos";
 import Noticias, {action as NewsAction}from "./pages/Noticias";
-import  {loader as NewsLoader}from "./pages/Noticias";
+import  {loader as noticiasLoader}from "./pages/Noticias";
 import Inicio from "./pages/Inicio";
 import Barberos from "./pages/Barberos";
 import Trabajos from "./pages/Trabajos";
@@ -67,7 +67,7 @@ export const router = createBrowserRouter([
             path: "nuestras/noticias" ,
             element: <Noticias />,
             action: NewsAction,
-            loader: NewsLoader
+            loader: noticiasLoader
           },
           {
             path: "barberos/disponibles/:barber", 

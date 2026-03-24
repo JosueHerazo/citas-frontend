@@ -14,18 +14,17 @@ export async function getNews() {
         return [];
     }
 }
-
 export async function addNews(formData: FormData) {
     try {
-        const url = `${import.meta.env.VITE_API_URL}/api/news`;
-        const { data } = await axios.post(url, formData, {
+        const baseUrl = import.meta.env.VITE_API_URL.replace(/\/$/, "");
+        const { data } = await axios.post(`${baseUrl}/api/news`, formData, {
             headers: {
-                "Content-Type": "multipart/form-data",
-            },
+                'Content-Type': 'multipart/form-data'
+            }
         });
         return data;
     } catch (error) {
-        console.error("Error al añadir noticia:", error);
+        console.error("Error subiendo noticia:", error);
         throw error;
     }
 }
