@@ -15,7 +15,7 @@ export type Trabajo = {
 
 export async function getTrabajos(): Promise<Trabajo[]> {
     try {
-        const { data } = await axios.get(`${BASE}/api/date/works`)
+        const { data } = await axios.get(`${BASE}/api/date/trabajos`)
         return data.data || []
     } catch {
         return []
@@ -23,12 +23,12 @@ export async function getTrabajos(): Promise<Trabajo[]> {
 }
 
 export async function createTrabajo(formData: FormData): Promise<Trabajo> {
-    const { data } = await axios.post(`${BASE}/api/date/works`, formData, {
+    const { data } = await axios.post(`${BASE}/api/date/trabajos`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     })
     return data.data
 }
 
 export async function deleteTrabajo(id: number): Promise<void> {
-    await axios.delete(`${BASE}/api/date/works/${id}`)
+    await axios.delete(`${BASE}/api/date/trabajos/${id}`)
 }
