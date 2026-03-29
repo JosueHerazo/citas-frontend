@@ -54,32 +54,48 @@ const NewDate = () => {
     }, [])
 
     // ==================== AGREGAR NUEVO BARBERO ====================
-    const handleAddBarbero = async () => {
-        const nombreLimpio = nuevoBarbero.trim()
-        if (!nombreLimpio) return
+    // const handleAddBarbero = async () => {
+    //     const nombreLimpio = nuevoBarbero.trim()
+    //     if (!nombreLimpio) return
         
-        const existe = barberos.some(b => b.toLowerCase() === nombreLimpio.toLowerCase())
-        if (existe) {
-            alert("Ese barbero ya existe en la lista")
-            return
-        }
+    //     const existe = barberos.some(b => b.toLowerCase() === nombreLimpio.toLowerCase())
+    //     if (existe) {
+    //         alert("Ese barbero ya existe en la lista")
+    //         return
+    //     }
 
-        const newBarberosArray = [...barberos, nombreLimpio]
+    //     const newBarberosArray = [...barberos, nombreLimpio]
 
-        try {
-            // Enviamos la lista actualizada al backend
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/date/barberos`, {
-                barberos: newBarberosArray
-            })
+    //     try {
+    //         // Enviamos la lista actualizada al backend
+    //         await axios.post(`${import.meta.env.VITE_API_URL}/api/date/barberos`, {
+    //             barberos: newBarberosArray
+    //         })
 
-            setBarberos(newBarberosArray)
-            setNuevoBarbero("")
-            alert("✅ Barbero agregado correctamente")
-        } catch (error: any) {
-            console.error(error)
-            alert("Error al guardar: " + (error.response?.data?.error || error.message))
-        }
+    //         setBarberos(newBarberosArray)
+    //         setNuevoBarbero("")
+    //         alert("✅ Barbero agregado correctamente")
+    //     } catch (error: any) {
+    //         console.error(error)
+    //         alert("Error al guardar: " + (error.response?.data?.error || error.message))
+    //     }
+    // }
+    const handleAddBarbero = async () => {
+    const nombreLimpio = nuevoBarbero.trim();
+    if (!nombreLimpio) return;
+
+    try {
+        await axios.post(`${import.meta.env.VITE_API_URL}/api/date/barberos`, {
+            nombre: nombreLimpio
+        });
+
+        fetchBarberos();           // recarga la lista
+        setNuevoBarbero("");
+        alert("✅ Barbero agregado");
+    } catch (error: any) {
+        alert("Error: " + (error.response?.data?.error || error.message));
     }
+};
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({
