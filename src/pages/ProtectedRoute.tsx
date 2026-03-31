@@ -5,11 +5,10 @@ export const ProtectedRoute = () => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
     const location = useLocation();
 
-    // Si no está logueado o no es admin/barbero → redirigir al login correcto
     if (!isLoggedIn || (userRole !== "admin" && userRole !== "barber")) {
         return <Navigate 
-            to="/login/admin" 
-            state={{ from: location }}   // ← Muy recomendado
+            to="/login/admin"           // ← Cambia a la ruta real del login
+            state={{ from: location }}  // Guarda la página a la que quería ir
             replace 
         />;
     }
