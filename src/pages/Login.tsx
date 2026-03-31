@@ -19,7 +19,7 @@ export async function action({ request }: ActionFunctionArgs) {
         localStorage.setItem("userRole", "client")
         localStorage.setItem("userName", "Cliente VIP") // Aquí vendría el nombre real desde el backend
         
-        return redirect("/")
+        return redirect("/admin/dashboard")
     } catch (error) {
         return "Usuario o contraseña incorrectos"
     }

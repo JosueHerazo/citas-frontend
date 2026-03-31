@@ -52,7 +52,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     try {
         await addProduct(data)
-        return redirect("/nuevo/inicio")
+        return redirect("/")
     } catch (error: any) {
         return { error: error.message || "Error al crear la cita" }
     }

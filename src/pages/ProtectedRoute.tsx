@@ -1,15 +1,18 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 export const ProtectedRoute = () => {
-    // Obtenemos el rol guardado en el Login
-    const userRole = localStorage.getItem("userRole"); 
+    const userRole = localStorage.getItem("userRole");
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const location = useLocation();
 
-    // Si no está logueado o no es administrador/barbero, para afuera
+    // Si no está logueado o no es admin/barbero → redirigir al login correcto
     if (!isLoggedIn || (userRole !== "admin" && userRole !== "barber")) {
-        return <Navigate to="/login" replace />;
+        return <Navigate 
+            to="/login/admin" 
+            state={{ from: location }}   // ← Muy recomendado
+            replace 
+        />;
     }
 
-    // Si todo está bien, muestra el contenido (Outlet)
     return <Outlet />;
 };

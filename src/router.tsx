@@ -54,12 +54,12 @@ export const router = createBrowserRouter([
         element: <CustomDatePicker />,
       },
       {
-        path: "/login/admin",
+        path: "login/admin",
         element: <Login />,
         action: loginAction,
       },
       {
-        path: "/admin",
+        path: "admin",
         element: <ProtectedRoute />,
         children: [
           {
