@@ -12,7 +12,7 @@ import axios from "axios"
 // ─── TIPOS ───────────────────────────────────────────────────────────────────
 // El backend de ventas usa { id: number, nombre: string, foto: string|null }
 type Barber  = { id: number | string; nombre: string; foto?: string | null }
-type Service = { name: string; price: number }
+type Service = { name: string; price: number; duration: number }
 
 // ─── DATOS BASE (fallback sin red) ───────────────────────────────────────────
 const BASE_BARBERS: Barber[] = [
@@ -21,22 +21,24 @@ const BASE_BARBERS: Barber[] = [
     { id: "stiven", nombre: "Stiven" },
 ]
 
+
 const BASE_SERVICES: Service[] = [
-    { name: "Corte",             price: 13 },
-    { name: "Corte con cejas",   price: 15 },
-    { name: "Corte con barba",   price: 18 },
-    { name: "Corte Vip",         price: 25 },
-    { name: "Barba",             price: 8  },
-    { name: "Barba VIP",         price: 11 },
-    { name: "Cejas",             price: 5  },
-    { name: "Mechas",            price: 30 },
-    { name: "Tinte",             price: 30 },
-    { name: "Trenzas",           price: 20 },
-    { name: "Mask Carbon",       price: 3  },
-    { name: "Limpieza Facial",   price: 15 },
-    { name: "Diseño",            price: 3  },
-    { name: "Lavado de Cabello", price: 2  },
-    { name: "Otros",             price: 0  },
+    { name: "Corte",             price: 13, duration: 30 },
+    { name: "Corte con cejas",   price: 15, duration: 45 },
+    { name: "Corte con barba",   price: 18, duration: 45 },
+    { name: "Corte con barba + cejas",   price: 20, duration: 55 },
+    { name: "Corte Vip",         price: 25, duration: 60 },
+    { name: "Barba",             price: 8,  duration: 20 },
+    { name: "Barba VIP",         price: 11, duration: 30 },
+    { name: "Cejas",             price: 5,  duration: 15 },
+    { name: "Mechas",            price: 30, duration: 60 },
+    { name: "Tinte",             price: 30, duration: 60 },
+    { name: "Trenzas",           price: 20, duration: 60 },
+    { name: "Mask Carbon",       price: 3,  duration: 15 },
+    { name: "Limpieza Facial",   price: 15, duration: 30 },
+    { name: "Diseño",            price: 3,  duration: 15 },
+    { name: "Lavado de Cabello", price: 2,  duration: 15 },
+    { name: "Otros",             price: 0,  duration: 30 },
 ]
 
 // ─── ACTION ──────────────────────────────────────────────────────────────────
@@ -53,7 +55,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     try {
         await addProduct(data)
-        return redirect("/dates")
+        return redirect("/")
     } catch (error: any) {
         return { error: error.message || "Error al crear la cita" }
     }
@@ -105,7 +107,7 @@ export default function NewDate() {
     const [showManage,     setShowManage]     = useState(false)
     const [savingPhoto,    setSavingPhoto]    = useState(false)
 
-    const [services,        setServices]        = useState<Service[]>(BASE_SERVICES)
+    const [services]        = useState<Service[]>(BASE_SERVICES)
     const [selectedService, setSelectedService] = useState("")
     const [price,           setPrice]           = useState<string>("")
 
@@ -127,20 +129,15 @@ export default function NewDate() {
     }, [])
 
     // ── Cargar servicios (shared localStorage con ventas) ─────────────────
-    useEffect(() => {
-        try {
-            const saved = localStorage.getItem("servicios_barber")
-            if (saved) {
-                const parsed = JSON.parse(saved)
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    setServices(parsed.map((s: any) => ({
-                        name:  s.name  ?? s.nombre ?? "?",
-                        price: s.price ?? s.precio ?? 0,
-                    })))
-                }
-            }
-        } catch {}
-    }, [])
+    // 2. Auto-rellenar precio Y duración al cambiar servicio
+useEffect(() => {
+    const s = services.find(s => s.name === selectedService)
+    if (s) {
+        setPrice(String(s.price))
+        // Solo autorellenar duration si el servicio tiene uno definido
+        if ((s as any).duration) setDuration(String((s as any).duration))
+    }
+}, [selectedService, services])
 
     // ── Auto-precio ────────────────────────────────────────────────────────
     useEffect(() => {
