@@ -1,4 +1,4 @@
-import {number, string, email,  pipe, boolean, object, InferOutput, any,} from "valibot"
+import {number, string, email,  pipe, boolean, object, InferOutput, any, nullable, array,} from "valibot"
 
 export const DraftRegisterSchema = object({
     name: string(),
@@ -44,10 +44,27 @@ export const NewsSchema = object({
   url: string(),
   barberId: string() // Para saber quién lo subió
 });
+export const DateSchema = object({
+    id: number(),
+    service: string(),
+    price: number(),
+    barber: string(),
+    client: string(),   
+    phone: nullable(string()),   
+    createdAt: any(), // IMPORTANTE: Sequelize siempre lo envía
+    updatedAt: any(), // IMPORTANTE: Sequelize siempre lo envía
+    clientId: nullable(any()),     
+    dateList: string(),
+    isPaid: boolean(),
+    // isArchived: boolean(),  // <--- Añadir esto
+
+})
+export const DatesSchema = array(DateSchema)
 
 export type Register = InferOutput<typeof RegisterSchema>
 export type DraftDate = InferOutput<typeof DraftDateSchema>     
 export type DraftNews = InferOutput<typeof NewsSchema>  
 export type WeeklyClosing = InferOutput<typeof WeeklyClosingSchema> 
 export type DraftRegister = InferOutput<typeof DraftRegisterSchema>
+export type DateList = InferOutput<typeof DateSchema>
 
