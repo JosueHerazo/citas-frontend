@@ -1,16 +1,16 @@
 import { createBrowserRouter } from "react-router-dom";
-import Layout from "./layouts/Layout";
-import NewDate, { action as listDateAction } from "./pages/NewDate";
-import Login, { action as loginAction } from "./pages/Login";
-import { ProtectedRoute } from "./pages/ProtectedRoute";
-import Register, { action as registerAction } from "./pages/Register";
-import Videos from "./pages/Videos";
-import Noticias, { action as NewsAction, loader as noticiasLoader } from "./pages/Noticias";
-import Inicio from "./pages/Inicio";
-import Barberos from "./pages/Barberos";
-import Trabajos from "./pages/Trabajos";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import CustomDatePicker from "./components/CustomDatePicker";
+import Layout from "../layouts/Layout";
+import NewDate, { action as listDateAction } from "./NewDate";
+import Login, { action as loginAction } from "../pages/Login";
+import { ProtectedRoute } from "../pages/ProtectedRoute";
+import Register, { action as registerAction } from "../pages/Register";
+import Videos from "../pages/Videos";
+import Noticias, { action as NewsAction, loader as noticiasLoader } from "../pages/Noticias";
+import Inicio from "../pages/Inicio";
+import Barberos from "../pages/Barberos";
+import Trabajos from "../pages/Trabajos";
+import AdminDashboard from "../pages/admin/AdminDashboard";
+import CustomDatePicker from "../components/CustomDatePicker";
 
 export const router = createBrowserRouter([
   {
