@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import Layout from "../layouts/Layout";
-import NewDate, { action as listDateAction } from "./NewDate";
+import NewDate, { action as newDateAction } from "./NewDate";
 import Login, { action as loginAction } from "../pages/Login";
 import { ProtectedRoute } from "../pages/ProtectedRoute";
 import Register, { action as registerAction } from "../pages/Register";
@@ -20,7 +20,7 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <NewDate />,
-        action: listDateAction,
+        action: newDateAction,
       },
       {
         path: "nuevo/inicio",
