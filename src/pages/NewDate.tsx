@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from "react"
 import { addProduct, getBarberosDB, addBarbero, updateBarbero } from "../services/ServiceDates"
 import CustomDatePicker from "../components/CustomDatePicker"
 import axios from "axios"
+import { Form } from "react-router-dom"
 
 // ─── TIPOS ───────────────────────────────────────────────────────────────────
 type Barber  = { id: number | string; nombre: string; foto?: string | null }
@@ -52,7 +53,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     try {
         await addProduct(data)
-        return redirect("/")
+        return redirect("/login/admin")
     } catch (error: any) {
         return { error: error.message || "Error al crear la cita" }
     }
@@ -230,7 +231,7 @@ export default function NewDate() {
                     </div>
                 )}
 
-                <form method="post" className="space-y-4">
+                <Form method="post" className="space-y-4">
 
                     {/* BARBEROS */}
                     <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
@@ -368,7 +369,7 @@ export default function NewDate() {
                         {isSubmitting ? "Guardando..." : "Confirmar y Guardar Cita"}
                     </button>
 
-                </form>
+                </Form>
             </div>
         </div>
     )
