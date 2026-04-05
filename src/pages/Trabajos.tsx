@@ -4,6 +4,7 @@ import { Link } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft, faStar, faPlus, faTrash, faSpinner, faTimes, faUpload } from "@fortawesome/free-solid-svg-icons"
 import { getTrabajos, createTrabajo, deleteTrabajo, type Trabajo } from "../services/ServiceTrabajos"
+import axios from "axios"
 
 const CATEGORIAS  = ["Todos", "Cortes", "Químicos", "Estilo", "Estética"]
 const ADMIN_PASS  = "latinos2024"   // ← cambia esto
@@ -63,26 +64,33 @@ export default function Trabajos() {
 
     // ── Subir trabajo ─────────────────────────────────────────
     const handleSubir = async () => {
-        if (!form.archivo || !form.titulo || !form.categoria) return
-        setUploading(true)
-        try {
-            const fd = new FormData()
-            fd.append('archivo',     form.archivo)
-            fd.append('titulo',      form.titulo)
-            fd.append('descripcion', form.descripcion)
-            fd.append('categoria',   form.categoria)
-            fd.append('barbero',     form.barbero)
-            await createTrabajo(fd)
+    if (!form.archivo || !form.titulo) return
+    setUploading(true)
+    try {
+        const reader = new FileReader()
+        reader.onload = async (e) => {
+            const base64 = e.target?.result as string
+            await axios.post(
+                `${import.meta.env.VITE_API_URL}/api/date/trabajos`,
+                {
+                    titulo:      form.titulo,
+                    descripcion: form.descripcion,
+                    categoria:   form.categoria,
+                    barbero:     form.barbero,
+                    imagen:      base64
+                }
+            )
             await cargarTrabajos()
             setForm({ titulo: '', descripcion: '', categoria: 'Cortes', barbero: '', archivo: null })
             setPreview(null)
-          
-        } catch (e) {
-            console.error(e)
-        } finally {
-            setUploading(false)
         }
+        reader.readAsDataURL(form.archivo)
+    } catch (e) {
+        console.error(e)
+    } finally {
+        setUploading(false)
     }
+}
 
     // ── Borrar trabajo ────────────────────────────────────────
     const handleBorrar = async (id: number) => {
