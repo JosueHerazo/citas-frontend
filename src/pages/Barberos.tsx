@@ -4,7 +4,8 @@ import { Link } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft, faScissors } from "@fortawesome/free-solid-svg-icons"
 import { faInstagram } from "@fortawesome/free-brands-svg-icons"
-
+import josuePerfil  from "../assets/josuePerfil.jpeg"
+import latinovip  from "../assets/latinosvip.jpg"
 type Barber = {
   id: string
   nombre: string
@@ -21,7 +22,7 @@ const BARBEROS: Barber[] = [
   {
     id: "josue",
     nombre: "Josue",
-    foto: "https://www.instagram.com/p/DMz3QrItwfs/",   // ← pega tu URL aquí
+    foto: josuePerfil,   // ← pega tu URL aquí
     descripcion: "Especialista en cortes modernos y fade degradado",
     especialidad: "Fade & Diseño",
     instagram: "https://instagram.com/latinosvip1"
@@ -29,7 +30,7 @@ const BARBEROS: Barber[] = [
   {
     id: "jankel",
     nombre: "Jankel",
-    foto: "https://i.imgur.com/TU_FOTO2.jpg",
+    foto: latinovip,
     descripcion: "Maestro en barba clásica y estilo VIP",
     especialidad: "Barba & Estilo",
     instagram: "https://instagram.com/latinosvip1"
@@ -37,7 +38,7 @@ const BARBEROS: Barber[] = [
   {
     id: "stiven",
     nombre: "Stiven",
-    foto: "https://i.imgur.com/TU_FOTO3.jpg",
+    foto: latinovip,
     descripcion: "Experto en diseños creativos y mechas",
     especialidad: "Diseños & Color",
     instagram: "https://instagram.com/latinosvip1"
