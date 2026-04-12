@@ -23,7 +23,7 @@ const TRABAJOS: Trabajo[] = [
     titulo: "Fade con diseño",
     descripcion: "Corte fade con línea y diseño geométrico",
     categoria: "Cortes",
-    url: "https://i.imgur.com/TU_IMAGEN1.jpg",
+    url: "https://www.instagram.com/p/DUVNksSiEp2/media/?size=l",
     tipo: "image",
     barbero: "Josue"
   },
