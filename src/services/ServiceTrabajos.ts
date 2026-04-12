@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASE = import.meta.env.VITE_API_URL.replace(/\/$/, '')
+const BASE = import.meta.env.VITE_API_URL
 
 export type Trabajo = {
     id:          number

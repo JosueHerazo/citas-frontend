@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Link } from "react-router-dom"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft, faStar, faPlus, faTrash, faSpinner, faTimes, faUpload } from "@fortawesome/free-solid-svg-icons"
-import { getTrabajos, createTrabajo, deleteTrabajo, type Trabajo } from "../services/ServiceTrabajos"
+import { getTrabajos, deleteTrabajo, type Trabajo } from "../services/ServiceTrabajos"
 import axios from "axios"
 
 const CATEGORIAS  = ["Todos", "Cortes", "Químicos", "Estilo", "Estética"]
