@@ -21,7 +21,7 @@ const BARBEROS: Barber[] = [
   {
     id: "josue",
     nombre: "Josue",
-    foto: "https://i.imgur.com/TU_FOTO.jpg",   // ← pega tu URL aquí
+    foto: "https://www.instagram.com/p/DMz3QrItwfs/",   // ← pega tu URL aquí
     descripcion: "Especialista en cortes modernos y fade degradado",
     especialidad: "Fade & Diseño",
     instagram: "https://instagram.com/latinosvip1"
