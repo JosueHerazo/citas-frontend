@@ -1,12 +1,28 @@
 import {useActionData,useNavigation,type ActionFunctionArgs,redirect,} from "react-router-dom"
-import { useState, useEffect, useRef } from "react"
-import { addProduct, getBarberosDB, addBarbero, updateBarbero } from "../services/ServiceDates"
+import { useState, useEffect } from "react"
+import { addProduct, getBarberosDB, addBarbero } from "../services/ServiceDates"
 import CustomDatePicker from "../components/CustomDatePicker"
 import axios from "axios"
 import { Form } from "react-router-dom"
 
+// ─── FOTOS DE BARBEROS (importadas desde assets) ──────────────────────────────
+// Sube la imagen a src/assets/ y agrégala aquí. La key debe ser el nombre
+// del barbero normalizado (ver normalize() más abajo: sin acentos, sin
+// espacios extra, en minúsculas).
+import josuePerfil from "../assets/josuePerfil.jpeg"
+import latinovip   from "../assets/latinosvip.jpg"
+// import vatoFoto  from "../assets/vato.jpeg"
+// import willFoto  from "../assets/will.jpeg"
+
+const FOTOS_BARBEROS: Record<string, string> = {
+    josue:  josuePerfil,
+    stiven: latinovip,
+    // vato: vatoFoto,
+    // will: willFoto,
+}
+
 // ─── TIPOS ───────────────────────────────────────────────────────────────────
-type Barber  = { id: number | string; nombre: string; foto?: string | null }
+type Barber  = { id: number | string; nombre: string }
 type Service = { name: string; price: number; duration: number }
 
 // ─── DATOS BASE ───────────────────────────────────────────────────────────────
@@ -36,6 +52,18 @@ const BASE_SERVICES: Service[] = [
 
 const API = () => (import.meta.env.VITE_API_URL || "").replace(/\/$/, "")
 
+// ─── HELPER ────────────────────────────────────────────────────────────────
+// Quita acentos, espacios extra y pasa a minúsculas, para que "Josué ",
+// "JOSUE", "josue" etc. todos matcheen la misma key.
+const normalize = (s: string) =>
+    s
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // quita tildes
+        .trim()
+        .toLowerCase()
+
+const getFoto = (nombre: string) => FOTOS_BARBEROS[normalize(nombre)] || null
+
 // ─── ACTION ───────────────────────────────────────────────────────────────────
 export async function action({ request }: ActionFunctionArgs) {
     const formData = await request.formData()
@@ -58,14 +86,11 @@ export default function NewDate() {
     const actionData   = useActionData() as { error?: string } | undefined
     const navigation   = useNavigation()
     const isSubmitting = navigation.state === "submitting"
-    const fileInputRef = useRef<HTMLInputElement>(null)
 
     const [barbers,        setBarbers]        = useState<Barber[]>(BASE_BARBERS)
     const [loadingBarbers, setLoadingBarbers] = useState(true)
-    const [editingId,      setEditingId]      = useState<number | string | null>(null)
     const [newBarberName,  setNewBarberName]  = useState("")
     const [showManage,     setShowManage]     = useState(false)
-    const [savingPhoto,    setSavingPhoto]    = useState(false)
 
     const [services]        = useState<Service[]>(BASE_SERVICES)
     const [selectedService, setSelectedService] = useState("")
@@ -80,7 +105,7 @@ export default function NewDate() {
     const [client, setClient] = useState("")
     const [phone,  setPhone]  = useState("")
 
-    // ── Cargar barberos ───────────────────────────────────────────────────
+    // ── Cargar barberos (solo nombres/id — la foto sale del mapa local) ────
     useEffect(() => {
         getBarberosDB().then((list: any[]) => {
             const filtered = list
@@ -88,8 +113,12 @@ export default function NewDate() {
                 .map((b: any) => ({
                     id:     b.id,
                     nombre: b.nombre || b.name || "?",
-                    foto:   b.foto   || b.photo || null,
                 }))
+            // 🔍 DEBUG TEMPORAL: mira la consola del navegador (F12) y revisa
+            // exactamente qué nombre llega de la base de datos para cada barbero.
+            // Compáralo con las keys de FOTOS_BARBEROS. Borra este console.log
+            // cuando confirmes que ya funciona.
+            console.log("Barberos desde la DB:", filtered.map(b => ({ nombre: b.nombre, normalizado: normalize(b.nombre) })))
             if (filtered.length) {
                 setBarbers(filtered)
             }
@@ -116,25 +145,7 @@ export default function NewDate() {
             .finally(() => setLoadingSlots(false))
     }, [selectedBarber])
 
-    // ── Cambiar foto ──────────────────────────────────────────────────────
-    const handleChangePhoto = (id: number | string, file: File) => {
-        const reader = new FileReader()
-        reader.onload = async (e) => {
-            const base64 = e.target?.result as string
-            setBarbers(prev => prev.map(b => b.id === id ? { ...b, foto: base64 } : b))
-            setSavingPhoto(true)
-            try {
-                await updateBarbero(id, { foto: base64 })
-            } catch (err) {
-                console.error("Error guardando foto:", err)
-            } finally {
-                setSavingPhoto(false)
-            }
-        }
-        reader.readAsDataURL(file)
-    }
-
-    // ── Agregar barbero ───────────────────────────────────────────────────
+    // ── Agregar barbero (solo nombre; la foto se agrega en el código) ─────
     const handleAddBarber = async () => {
         const nombre = newBarberName.trim()
         if (!nombre) return
@@ -142,11 +153,7 @@ export default function NewDate() {
 
         const created = await addBarbero(nombre)
         if (created) {
-            setBarbers(prev => [...prev, {
-                id:     created.id,
-                nombre: created.nombre,
-                foto:   created.foto || null,
-            }])
+            setBarbers(prev => [...prev, { id: created.id, nombre: created.nombre }])
             setNewBarberName("")
         } else {
             alert("Error al agregar barbero. Revisa la conexión.")
@@ -181,37 +188,27 @@ export default function NewDate() {
                     </div>
                 )}
 
-                {/* PANEL GESTIONAR */}
+                {/* PANEL GESTIONAR — ahora solo agrega el nombre. La foto se sube en VS Code */}
                 {showManage && (
                     <div className="mb-6 bg-zinc-900 border border-zinc-800 rounded-3xl p-5 space-y-3">
-                        <div className="flex items-center justify-between">
-                            <p className="text-amber-500 text-xs font-black uppercase">Gestionar Barberos</p>
-                            {savingPhoto && <span className="text-[10px] text-zinc-500 animate-pulse">Guardando foto...</span>}
-                        </div>
+                        <p className="text-amber-500 text-xs font-black uppercase">Gestionar Barberos</p>
+                        <p className="text-zinc-500 text-[10px] leading-relaxed">
+                            Para asignarle foto a un barbero nuevo, sube la imagen a{" "}
+                            <code className="text-amber-500">src/assets/</code> y agrégala al objeto{" "}
+                            <code className="text-amber-500">FOTOS_BARBEROS</code> arriba en el código.
+                        </p>
 
                         {barbers.map(b => (
                             <div key={b.id} className="flex items-center gap-3 bg-zinc-950 border border-zinc-800 rounded-2xl p-3">
-                                <div className="relative cursor-pointer flex-shrink-0"
-                                    onClick={() => { setEditingId(b.id); fileInputRef.current?.click() }}
-                                    title="Cambiar foto">
-                                    {b.foto
-                                        ? <img src={b.foto} className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700" />
-                                        : <div className="w-10 h-10 rounded-full bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center text-lg font-black text-amber-500">
-                                            {b.nombre[0]?.toUpperCase()}
-                                          </div>
-                                    }
-                                    <span className="absolute -bottom-1 -right-1 bg-amber-500 text-black text-[7px] rounded-full w-3.5 h-3.5 flex items-center justify-center font-black">E</span>
-                                </div>
+                                {getFoto(b.nombre)
+                                    ? <img src={getFoto(b.nombre)!} className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700" />
+                                    : <div className="w-10 h-10 rounded-full bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center text-lg font-black text-amber-500">
+                                        {b.nombre[0]?.toUpperCase()}
+                                      </div>
+                                }
                                 <span className="flex-1 text-white text-sm font-bold">{b.nombre}</span>
                             </div>
                         ))}
-
-                        <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
-                            onChange={e => {
-                                const file = e.target.files?.[0]
-                                if (file && editingId !== null) handleChangePhoto(editingId, file)
-                                e.target.value = ""
-                            }} />
 
                         <div className="flex gap-2 pt-2 border-t border-zinc-800">
                             <input type="text" value={newBarberName}
@@ -236,6 +233,7 @@ export default function NewDate() {
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 {barbers.map(b => {
                                     const isSelected = selectedBarber === b.nombre
+                                    const foto = getFoto(b.nombre)
                                     return (
                                         <div
                                             key={b.id}
@@ -246,9 +244,9 @@ export default function NewDate() {
                                                     : "border-zinc-700 opacity-70 hover:opacity-100"
                                             }`}
                                         >
-                                            {b.foto ? (
+                                            {foto ? (
                                                 <img
-                                                    src={b.foto}
+                                                    src={foto}
                                                     alt={b.nombre}
                                                     className="w-full h-full object-cover"
                                                 />
@@ -258,17 +256,14 @@ export default function NewDate() {
                                                 </div>
                                             )}
 
-                                            {/* Overlay degradado para que el nombre siempre se lea */}
                                             <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/10 to-transparent" />
 
-                                            {/* Check de seleccionado */}
                                             {isSelected && (
                                                 <div className="absolute top-2 right-2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-black text-[10px] font-black">
                                                     ✓
                                                 </div>
                                             )}
 
-                                            {/* Nombre */}
                                             <div className="absolute bottom-0 left-0 right-0 p-2">
                                                 <p className={`text-xs font-black uppercase text-center truncate ${
                                                     isSelected ? "text-amber-400" : "text-white"
@@ -337,7 +332,7 @@ export default function NewDate() {
                         </div>
                     </div>
 
-                    {/* DURACIÓN — se auto-selecciona con el servicio, editable manualmente */}
+                    {/* DURACIÓN */}
                     <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
                         <label className="text-amber-500 text-[10px] font-black uppercase mb-3 block">
                             Duración
