@@ -12,7 +12,6 @@ type Service = { name: string; price: number; duration: number }
 // ─── DATOS BASE ───────────────────────────────────────────────────────────────
 const BASE_BARBERS: Barber[] = [
     { id: "josue",  nombre: "Josue"  },
-    { id: "jankel",   nombre: "Jankel"   },
     { id: "stiven", nombre: "Stiven" },
 ]
 
