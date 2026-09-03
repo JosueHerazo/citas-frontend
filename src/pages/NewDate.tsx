@@ -227,34 +227,58 @@ export default function NewDate() {
 
                 <Form method="post" className="space-y-4">
 
-                    {/* BARBEROS */}
+                    {/* BARBEROS — tarjetas con foto grande, estilo Barberos.tsx */}
                     <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5">
-                        <label className="text-amber-500 text-[10px] font-black uppercase mb-4 block">Barbero</label>
+                        <label className="text-amber-500 text-[10px] font-black uppercase mb-4 block">Elige tu Barbero</label>
                         {loadingBarbers ? (
                             <p className="text-zinc-500 text-sm animate-pulse">Cargando barberos...</p>
                         ) : (
-                            <div className="flex gap-5 flex-wrap">
-                                {barbers.map(b => (
-                                    <div key={b.id}
-                                        onClick={() => { setSelectedBarber(b.nombre); setSelectedDate(null) }}
-                                        className={`flex flex-col items-center gap-1.5 cursor-pointer transition-all duration-200 ${
-                                            selectedBarber === b.nombre ? "scale-110" : "opacity-50 hover:opacity-80"
-                                        }`}>
-                                        <div className={`w-16 h-16 rounded-full overflow-hidden border-2 transition-colors ${
-                                            selectedBarber === b.nombre ? "border-amber-500" : "border-zinc-700"
-                                        }`}>
-                                            {b.foto
-                                                ? <img src={b.foto} className="w-full h-full object-cover" />
-                                                : <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-2xl font-black text-amber-500">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {barbers.map(b => {
+                                    const isSelected = selectedBarber === b.nombre
+                                    return (
+                                        <div
+                                            key={b.id}
+                                            onClick={() => { setSelectedBarber(b.nombre); setSelectedDate(null) }}
+                                            className={`relative h-36 rounded-2xl overflow-hidden cursor-pointer border-2 transition-all duration-200 bg-zinc-800 ${
+                                                isSelected
+                                                    ? "border-amber-500 scale-[1.02] shadow-lg shadow-amber-900/30"
+                                                    : "border-zinc-700 opacity-70 hover:opacity-100"
+                                            }`}
+                                        >
+                                            {b.foto ? (
+                                                <img
+                                                    src={b.foto}
+                                                    alt={b.nombre}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-4xl font-black text-amber-500">
                                                     {b.nombre[0]?.toUpperCase()}
-                                                  </div>
-                                            }
+                                                </div>
+                                            )}
+
+                                            {/* Overlay degradado para que el nombre siempre se lea */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/10 to-transparent" />
+
+                                            {/* Check de seleccionado */}
+                                            {isSelected && (
+                                                <div className="absolute top-2 right-2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-black text-[10px] font-black">
+                                                    ✓
+                                                </div>
+                                            )}
+
+                                            {/* Nombre */}
+                                            <div className="absolute bottom-0 left-0 right-0 p-2">
+                                                <p className={`text-xs font-black uppercase text-center truncate ${
+                                                    isSelected ? "text-amber-400" : "text-white"
+                                                }`}>
+                                                    {b.nombre}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <span className={`text-[10px] font-black ${
-                                            selectedBarber === b.nombre ? "text-amber-500" : "text-zinc-500"
-                                        }`}>{b.nombre}</span>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                         )}
                         <input type="hidden" name="barber" value={selectedBarber} />
