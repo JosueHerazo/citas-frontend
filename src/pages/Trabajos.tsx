@@ -11,7 +11,18 @@ import { useState } from "react"
 import fadeConDiseno from "../assets/fadediseño.jpeg"
 import barbaVip     from "../assets/barba.jpeg"
  import corteMechas  from "../assets/mechascorte.jfif"
-import miVideo      from "../assets/mechasvide.mp4"
+ import miVideo  from "../assets/mechasvide.mp4"
+import siete      from "../assets/siete.jpeg"
+import sietes      from "../assets/sietes.jpeg"
+import fadealex      from "../assets/fadealex.jpeg"
+import taperee from "../assets/taperee.jpeg"
+import taper      from "../assets/taper.jpeg"
+import stivenfades  from "../assets/stivenfades.jpeg"
+import stivenfade from "../assets/stivenfade.jpeg"
+import sietess from "../assets/sietess.jfif"
+import rizoz      from "../assets/rizoz.jpeg"
+import rizos      from "../assets/rizos.jpeg"
+import risosse      from "../assets/risosse.jpeg"
 
 type Trabajo = {
   id: number
@@ -55,17 +66,117 @@ const TRABAJOS: Trabajo[] = [
     categoria: "Químicos",
     url: corteMechas,
     tipo: "image",
-    barbero: "Stiven"
+    barbero: "Josue"
   },
   {
     id: 4,
+    titulo: "Corte 7",
+    descripcion: "Corte 7 ",
+    categoria: "cortes",
+    url: siete,
+    tipo: "image",
+    barbero: "Josue"
+  },
+  {
+    id: 5,
+    titulo: "siete colombiano",
+    descripcion: "cortes colombiano-latino",
+    categoria: "cortes",
+    url: sietes,
+    tipo: "image",
+    barbero: "Stiven"
+  },
+  {
+    id: 6,
+    titulo: "fade ",
+    descripcion: "corte fade con estilo latino",
+    categoria: "cortes",
+    url: fadealex,
+    tipo: "image",
+    barbero: "Josue"
+  },
+  {
+    id: 7,
+    titulo: "Taper",
+    descripcion: "corte taper con estilo latino",
+    categoria: "cortes",
+    url: taperee,
+    tipo: "image",
+    barbero: "Josue"
+  },
+  {
+    id: 8   ,
+    titulo: "taper",
+    descripcion: "taper con estilo latino",
+    categoria: "cortes",
+    url: taper,
+    tipo: "image",
+    barbero: "Josue"
+  },
+  {
+    id: 9,
+    titulo: "fades",
+    descripcion: "corte fades con estilo latino",
+    categoria: "Químicos",
+    url: stivenfades,
+    tipo: "image",
+    barbero: "Stiven"
+  },
+  {
+    id: 10,
+    titulo: "stivenfade",
+    descripcion: "corte fade con estilo latino",
+    categoria: "cortes",
+    url: stivenfade,
+    tipo: "image",
+    barbero: "Stiven"
+  },
+  {
+    id: 11,
+    titulo: "sietess",
+    descripcion: "corte sietess con estilo latino",
+    categoria: "cortes",
+    url: sietess,
+    tipo: "image",
+    barbero: "Josue"
+  },
+  {
+    id: 12,
+    titulo: "rizoz",
+    descripcion: "rizoz con estilo latino",
+    categoria: "Químicos",
+    url: rizoz,
+    tipo: "image",
+    barbero: "Stiven"
+  },
+  {
+    id: 13,
+    titulo: "rizos",
+    descripcion: "rizos con estilo latino",
+    categoria: "Químicos",
+    url: rizos,
+    tipo: "image",
+    barbero: "Stiven"
+  },
+  {
+    id: 15,
+    titulo: "risos",
+    descripcion: "rizos con estilo latino",
+    categoria: "Químicos",
+    url: risosse,
+    tipo: "image",
+    barbero: "Stiven"
+  },
+  {
+    id: 14,
     titulo: "Video de mechas",
     descripcion: "Demostración del proceso de aplicación de mechas",
     categoria: "Químicos",
     url: miVideo,
     tipo: "video",
     barbero: "Josue"
-  }
+  },
+ 
 ]
 
 export default function Trabajos() {
