@@ -5,6 +5,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faArrowLeft, faStar } from "@fortawesome/free-solid-svg-icons"
 import { useState } from "react"
 
+// ─── IMÁGENES DE TRABAJOS (importadas desde assets) ──────────────────────────
+// Sube cada foto o video a src/assets/trabajos/ y agrégalo aquí como import.
+// Luego úsalo en el array TRABAJOS más abajo, en el campo "url".
+import fadeConDiseno from "../assets/fadediseño.jpeg"
+import barbaVip     from "../assets/barba.jpeg"
+ import corteMechas  from "../assets/mechascorte.jfif"
+import miVideo      from "../assets/mechasvide.mp4"
+
 type Trabajo = {
   id: number
   titulo: string
@@ -17,13 +25,17 @@ type Trabajo = {
 
 const CATEGORIAS = ["Todos", "Cortes", "Químicos", "Estilo", "Estética"]
 
+// ─── EDITA AQUÍ TUS TRABAJOS ──────────────────────────────────────────────────
+// 1. Sube el archivo a src/assets/trabajos/
+// 2. Impórtalo arriba
+// 3. Ponlo en "url" (no como texto, sino la variable importada)
 const TRABAJOS: Trabajo[] = [
   {
     id: 1,
     titulo: "Fade con diseño",
     descripcion: "Corte fade con línea y diseño geométrico",
     categoria: "Cortes",
-    url: "https://www.instagram.com/p/DUVNksSiEp2/media/?size=l",
+    url: fadeConDiseno,
     tipo: "image",
     barbero: "Josue"
   },
@@ -32,19 +44,28 @@ const TRABAJOS: Trabajo[] = [
     titulo: "Barba VIP completa",
     descripcion: "Barba perfilada con aceite premium",
     categoria: "Estilo",
-    url: "https://i.imgur.com/TU_IMAGEN2.jpg",
+    url: barbaVip,
     tipo: "image",
-    barbero: "Jankel"
+    barbero: "Josue"
   },
   {
     id: 3,
     titulo: "Corte con mechas",
     descripcion: "Técnica de mechas con balayage moderno",
     categoria: "Químicos",
-    url: "https://i.imgur.com/TU_IMAGEN3.jpg",
+    url: corteMechas,
     tipo: "image",
     barbero: "Stiven"
   },
+  {
+    id: 4,
+    titulo: "Video de mechas",
+    descripcion: "Demostración del proceso de aplicación de mechas",
+    categoria: "Químicos",
+    url: miVideo,
+    tipo: "video",
+    barbero: "Josue"
+  }
 ]
 
 export default function Trabajos() {
